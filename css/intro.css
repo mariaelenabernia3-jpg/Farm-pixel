@@ -34,14 +34,21 @@ body {
     height: 100vh;
     width: 100%;
     position: absolute;
-    top: 0; left: 0;
+    top: 0;
+    left: 0;
     transition: opacity 0.5s steps(1, end);
 }
 
-.hidden { opacity: 0; pointer-events: none; }
-.visible { opacity: 1; }
+.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
 
-/* --- PANTALLA 1: DZM STUDIOS (RETRO) --- */
+.visible {
+    opacity: 1;
+}
+
+/* --- Estilos para las pantallas de Logos y Tecnologías --- */
 .logo-retro {
     font-size: 4rem;
     font-weight: normal;
@@ -50,10 +57,13 @@ body {
     opacity: 0;
     animation: flickerIn 3s forwards;
 }
-@keyframes flickerIn { 0%, 50% { opacity: 0; } 51%, 60% { opacity: 1; } 61%, 70% { opacity: 0; } 71%, 100% { opacity: 1; } }
+@keyframes flickerIn {
+    0%, 50% { opacity: 0; }
+    51%, 60% { opacity: 1; }
+    61%, 70% { opacity: 0; }
+    71%, 100% { opacity: 1; }
+}
 
-
-/* --- PANTALLA 2: CLANHATER'S PROJECTS (AHORA RETRO) --- */
 .text-retro {
     font-size: 2.5rem;
     color: var(--color-text-retro);
@@ -61,22 +71,49 @@ body {
     opacity: 0;
     animation: fadeInPixel 2s 0.5s forwards;
 }
-@keyframes fadeInPixel { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeInPixel {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
 
+.tech-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    font-size: 2rem;
+    margin-top: 1rem;
+}
 
-/* --- PANTALLA 3: TECNOLOGÍAS (RETRO) --- */
-.tech-container { display: flex; flex-wrap: wrap; justify-content: center; font-size: 2rem; margin-top: 1rem; }
-.tech-text, .tech-item, .tech-separator { opacity: 0; animation: fadeInPixel 0.5s forwards; text-shadow: 2px 2px 0 var(--color-shadow); }
+.tech-text, .tech-item, .tech-separator {
+    opacity: 0;
+    animation: fadeInPixel 0.5s forwards;
+    text-shadow: 2px 2px 0 var(--color-shadow);
+}
 .tech-text { animation-delay: 0.5s; font-size: 1.2rem; }
 .html { animation-delay: 1.5s; color: #E44D26; }
 .css { animation-delay: 2.0s; color: #264DE4; }
 .js { animation-delay: 2.5s; color: #F0DB4F; }
 .tech-separator { animation-delay: 3.0s; margin: 0 1rem; }
 
-/* --- MEDIA QUERIES --- */
+
+/* --- Estilos para el texto de Omitir --- */
+.skip-prompt {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    font-size: 1rem;
+    color: var(--color-text-retro);
+    opacity: 0.7;
+    text-shadow: 2px 2px 0 var(--color-shadow);
+    z-index: 100;
+    transition: opacity 0.5s ease-out;
+}
+
+/* --- Media Queries para Móviles --- */
 @media (max-width: 768px) {
     .logo-retro { font-size: 2.5rem; }
     .text-retro { font-size: 1.8rem; }
     .tech-text { font-size: 1rem; }
     .tech-container { font-size: 1.5rem; }
+    .skip-prompt { font-size: 0.8rem; }
 }

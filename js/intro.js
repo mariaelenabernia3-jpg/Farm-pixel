@@ -1,43 +1,79 @@
 window.onload = () => {
-    // Referencias a las pantallas
+    // Referencias a las pantallas y elementos
     const dzmScreen = document.getElementById('dzm-screen');
     const clanhaterScreen = document.getElementById('clanhater-screen');
     const techScreen = document.getElementById('tech-screen');
+    const skipPrompt = document.getElementById('skip-prompt');
 
-    // Duraciones ajustadas para un ritmo retro y rápido
-    const dzmDuration = 3000;       // 3 segundos
-    const clanhaterDuration = 3000; // 3 segundos
-    const techDuration = 4000;      // 4 segundos
+    // Duraciones para cada pantalla en milisegundos
+    const dzmDuration = 3000;
+    const clanhaterDuration = 3000;
+    const techDuration = 4000;
 
-    // --- SECUENCIA DE LA INTRO ---
+    // Banderas para controlar el estado
+    let isSkipping = false;
+    // Array para almacenar los IDs de los timeouts y poder cancelarlos si se omite la intro
+    const timeoutIds = [];
 
-    // 1. Después de DZM, muestra ClanHater.
-    setTimeout(() => {
-        dzmScreen.classList.remove('visible');
-        dzmScreen.classList.add('hidden');
-        
-        clanhaterScreen.classList.remove('hidden');
-        clanhaterScreen.classList.add('visible');
-    }, dzmDuration);
+    // --- FUNCIÓN PARA OMITIR LA INTRODUCCIÓN ---
+    function skipIntro() {
+        // Si ya estamos omitiendo, no hagas nada más
+        if (isSkipping) return;
+        isSkipping = true;
 
-    // 2. Después de ClanHater, muestra las Tecnologías.
-    setTimeout(() => {
-        clanhaterScreen.classList.remove('visible');
-        clanhaterScreen.classList.add('hidden');
-        
-        techScreen.classList.remove('hidden');
-        techScreen.classList.add('visible');
-    }, dzmDuration + clanhaterDuration);
+        console.log("Intro omitida.");
 
-    // 3. Después de las Tecnologías, inicia la transición al menú del juego.
-    setTimeout(() => {
-        // Inicia el fade-out del cuerpo de la página
+        // Cancela todas las animaciones de la secuencia que estén pendientes
+        timeoutIds.forEach(id => clearTimeout(id));
+
+        // Oculta el texto de "omitir" inmediatamente
+        skipPrompt.classList.add('hidden');
+
+        // Inicia la transición final al menú
         document.body.style.opacity = 0;
-        
-        // Espera a que termine el fade-out antes de redirigir
         setTimeout(() => {
             window.location.href = 'menu.html';
-        }, 500); // Este tiempo debe coincidir con la transición en el CSS del body
+        }, 500); // Este tiempo debe coincidir con la transición en el CSS
+    }
 
-    }, dzmDuration + clanhaterDuration + techDuration);
+    // --- SECUENCIA PRINCIPAL DE LA INTRODUCCIÓN ---
+    function startIntroSequence() {
+        // Muestra el texto de "omitir" después de un breve momento
+        timeoutIds.push(setTimeout(() => {
+            skipPrompt.classList.remove('hidden');
+        }, 500));
+
+        // 1. Transición de DZM a ClanHater
+        timeoutIds.push(setTimeout(() => {
+            dzmScreen.classList.remove('visible');
+            dzmScreen.classList.add('hidden');
+            clanhaterScreen.classList.remove('hidden');
+            clanhaterScreen.classList.add('visible');
+        }, dzmDuration));
+
+        // 2. Transición de ClanHater a Tecnologías
+        timeoutIds.push(setTimeout(() => {
+            clanhaterScreen.classList.remove('visible');
+            clanhaterScreen.classList.add('hidden');
+            techScreen.classList.remove('hidden');
+            techScreen.classList.add('visible');
+        }, dzmDuration + clanhaterDuration));
+
+        // 3. Transición final de Tecnologías al menú del juego
+        timeoutIds.push(setTimeout(() => {
+            skipPrompt.classList.add('hidden'); // Oculta el texto antes de la transición final
+            skipIntro(); // Llama a la función skip para la transición final
+        }, dzmDuration + clanhaterDuration + techDuration));
+    }
+
+    // --- INICIALIZACIÓN ---
+    // Inicia la secuencia de introducción automáticamente al cargar la página
+    startIntroSequence();
+
+    // Añade el listener para la tecla "Escape" para poder omitir la intro
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            skipIntro();
+        }
+    });
 };
