@@ -1,8 +1,8 @@
 /* --- Variables y Estilos Globales Retro --- */
 :root {
     --font-pixel: 'Press Start 2P', cursive;
-    --color-bg: #140c1c;
-    --color-text: #fff1e8;
+    --color-bg-retro: #140c1c;
+    --color-text-retro: #fff1e8;
     --color-shadow: #000000;
 }
 
@@ -15,13 +15,13 @@ html {
 }
 
 body {
-    font-family: var(--font-pixel);
-    background-color: var(--color-bg);
-    color: var(--color-text);
+    background-color: var(--color-bg-retro);
+    color: var(--color-text-retro);
     overflow: hidden;
+    font-family: var(--font-pixel);
     font-smooth: never;
     -webkit-font-smoothing: none;
-    transition: opacity 0.5s linear; /* Para el fade-out final */
+    transition: opacity 0.5s linear;
 }
 
 .screen {
@@ -35,55 +35,48 @@ body {
     width: 100%;
     position: absolute;
     top: 0; left: 0;
-    transition: opacity 0.5s steps(1, end); /* Transición de corte duro */
+    transition: opacity 0.5s steps(1, end);
 }
 
 .hidden { opacity: 0; pointer-events: none; }
 .visible { opacity: 1; }
 
-/* --- PANTALLA 1: LOGO "DZM STUDIOS" RETRO --- */
-.logo {
+/* --- PANTALLA 1: DZM STUDIOS (RETRO) --- */
+.logo-retro {
     font-size: 4rem;
     font-weight: normal;
-    color: #FEEB7A; /* Mismo amarillo que el título del juego */
+    color: #FEEB7A;
     text-shadow: 4px 4px 0px var(--color-shadow);
     opacity: 0;
     animation: flickerIn 3s forwards;
 }
+@keyframes flickerIn { 0%, 50% { opacity: 0; } 51%, 60% { opacity: 1; } 61%, 70% { opacity: 0; } 71%, 100% { opacity: 1; } }
 
-@keyframes flickerIn {
-    0% { opacity: 0; }
-    50% { opacity: 0; }
-    51% { opacity: 1; }
-    60% { opacity: 1; }
-    61% { opacity: 0; }
-    70% { opacity: 0; }
-    71% { opacity: 1; }
-    100% { opacity: 1; }
+
+/* --- PANTALLA 2: CLANHATER'S PROJECTS (AHORA RETRO) --- */
+.text-retro {
+    font-size: 2.5rem;
+    color: var(--color-text-retro);
+    text-shadow: 3px 3px 0px var(--color-shadow);
+    opacity: 0;
+    animation: fadeInPixel 2s 0.5s forwards;
 }
-
-/* --- PANTALLA 2: TECNOLOGÍAS RETRO --- */
-#tech-screen { background-color: var(--color-bg); }
-.tech-container { display: flex; flex-wrap: wrap; justify-content: center; font-size: 2rem; margin-top: 1rem; }
-
 @keyframes fadeInPixel { from { opacity: 0; } to { opacity: 1; } }
 
-.tech-text, .tech-item, .tech-separator {
-    opacity: 0;
-    animation: fadeInPixel 0.5s forwards;
-    text-shadow: 2px 2px 0 var(--color-shadow);
-}
 
+/* --- PANTALLA 3: TECNOLOGÍAS (RETRO) --- */
+.tech-container { display: flex; flex-wrap: wrap; justify-content: center; font-size: 2rem; margin-top: 1rem; }
+.tech-text, .tech-item, .tech-separator { opacity: 0; animation: fadeInPixel 0.5s forwards; text-shadow: 2px 2px 0 var(--color-shadow); }
 .tech-text { animation-delay: 0.5s; font-size: 1.2rem; }
 .html { animation-delay: 1.5s; color: #E44D26; }
 .css { animation-delay: 2.0s; color: #264DE4; }
 .js { animation-delay: 2.5s; color: #F0DB4F; }
-.tech-separator { animation-delay: 3.0s; margin: 0 1rem; color: var(--color-text); }
+.tech-separator { animation-delay: 3.0s; margin: 0 1rem; }
 
-/* --- MEDIA QUERY PARA DISPOSITIVOS MÓVILES --- */
+/* --- MEDIA QUERIES --- */
 @media (max-width: 768px) {
-    .logo { font-size: 2.5rem; }
+    .logo-retro { font-size: 2.5rem; }
+    .text-retro { font-size: 1.8rem; }
     .tech-text { font-size: 1rem; }
     .tech-container { font-size: 1.5rem; }
-    .tech-separator { margin: 0 0.5rem; }
 }

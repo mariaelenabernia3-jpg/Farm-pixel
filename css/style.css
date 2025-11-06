@@ -10,104 +10,87 @@
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-
-html {
-    image-rendering: pixelated;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: crisp-edges;
-}
+html { image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; }
 
 body, html {
     font-family: var(--font-pixel);
     color: var(--color-text);
-    display: flex;
-    justify-content: center;
-    align-items: center;
     height: 100vh;
     overflow: hidden;
     font-smooth: never;
     -webkit-font-smoothing: none;
     cursor: none !important;
-
-    /* Estilos del fondo */
-    background-color: var(--color-bg); /* Color de respaldo si el GIF no carga */
+    background-color: var(--color-bg);
     background-image: url('../assets/images/fondo.gif');
     background-position: center center;
     background-size: cover;
-    
-    /* CLAVE: Esta es la línea que soluciona el problema de duplicación */
     background-repeat: no-repeat;
 }
 
+#particles-canvas {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none;
+}
 
-/* --- Contenedor Principal del Menú --- */
 .menu-container {
-    width: 90%;
-    max-width: 500px;
-    padding: 2rem;
-    background-color: var(--color-ui-bg);
-    border: 4px solid var(--color-ui-border);
-    box-shadow: 
-        inset 0 0 0 4px var(--color-bg),
-        0 0 0 4px var(--color-shadow);
-    text-align: center;
+    display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; height: 100%; padding: 1rem; transition: transform 0.1s linear; position: relative; z-index: 1;
 }
 
-/* --- Título Profesional y Vibrante --- */
 .game-title h1 {
-    font-size: 3rem;
-    margin-bottom: 2.5rem;
-    position: relative;
-    color: #FEEB7A;
-    text-shadow:
-        -2px -2px 0 #E8A444,
-        4px 4px 0 #A06A38,
-        6px 6px 0 var(--color-shadow);
-    background: none;
-    animation: titlePulse 4s ease-in-out infinite;
+    font-size: 3rem; margin-bottom: 2.5rem; position: relative; color: #FEEB7A; text-shadow: -2px -2px 0 #E8A444, 4px 4px 0 #A06A38, 6px 6px 0 var(--color-shadow); background: none; animation: titlePulse 4s ease-in-out infinite;
 }
+@keyframes titlePulse { 0%, 100% { color: #FEEB7A; } 50% { color: #FFF8C7; } }
 
-@keyframes titlePulse {
-    0%, 100% { color: #FEEB7A; }
-    50% { color: #FFF8C7; }
-}
-
-/* --- Menú de Navegación y Cursor --- */
 .main-menu { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
-.cursor { position: absolute; left: 0; top: 0; color: var(--color-highlight); font-size: 1.5rem; transition: top 0.1s ease-in-out; }
-.menu-button { color: var(--color-text); text-decoration: none; font-size: 1.5rem; padding: 0.5rem; background: none; border: none; -webkit-tap-highlight-color: transparent; }
-.menu-button.active { color: var(--color-highlight); transform: translateX(5px); }
+
+.cursor {
+    position: absolute; left: -35px; top: 0; color: var(--color-highlight); font-size: 1.5rem; transition: top 0.1s ease-in-out; text-shadow: 3px 3px 0px var(--color-shadow);
+}
+
+.menu-button {
+    color: var(--color-text); text-decoration: none; font-size: 1.5rem; padding: 0.5rem; background: none; border: none; -webkit-tap-highlight-color: transparent; text-shadow: 3px 3px 0px var(--color-shadow); transition: transform 0.1s ease-out;
+}
+
+.menu-button.active {
+    color: var(--color-highlight);
+    animation: button-bounce 0.2s ease-out forwards;
+}
+
+@keyframes button-bounce {
+    0% { transform: scale(1) translateX(0); }
+    50% { transform: scale(0.95) translateX(2px); }
+    100% { transform: scale(1) translateX(5px); }
+}
 
 /* --- Estilos Generales para Modales --- */
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; animation: fadeIn 0.2s ease-out; }
+.modal-overlay { 
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; animation: fadeIn 0.2s ease-out;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .modal-content { background-color: var(--color-ui-bg); border: 4px solid var(--color-ui-border); box-shadow: inset 0 0 0 4px var(--color-bg); padding: 2rem; text-align: center; max-width: 500px; width: 90%; }
 .modal-content h2 { font-size: 1.8rem; margin-bottom: 2rem; color: var(--color-highlight); }
 .modal-btn { font-family: var(--font-pixel); background-color: var(--color-ui-border); color: var(--color-text); border: 2px solid var(--color-shadow); padding: 0.5rem 1rem; font-size: 1rem; cursor: none; -webkit-tap-highlight-color: transparent; margin-top: 1rem; }
 .modal-btn:hover, .modal-btn.active { background-color: var(--color-highlight); }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* --- Estilos para el Modal de Opciones --- */
+/* --- Estilos de Opciones y Créditos --- */
 .options-menu { display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 2rem; }
 .option-row { display: flex; justify-content: space-between; align-items: center; font-size: 1.2rem; }
 .toggle-btn { font-family: var(--font-pixel); font-size: 1rem; padding: 0.5rem 1rem; border: 2px solid var(--color-shadow); color: var(--color-text); }
 .toggle-btn[data-toggled="true"] { background-color: #228B22; }
 .toggle-btn[data-toggled="false"] { background-color: var(--color-ui-border); }
 .toggle-btn.active { box-shadow: 0 0 10px var(--color-text); }
-
-/* --- Estilos para el Modal de Créditos --- */
-.credits-content { animation: scrollUp 15s linear infinite; }
+.credits-content { animation: scrollUp 18s linear infinite; }
 .credit-role { font-size: 1rem; color: var(--color-highlight); margin-top: 1.5rem; }
 .credit-role:first-child { margin-top: 0; }
-.credit-name { font-size: 1.2rem; color: var(--color-text); }
+.credit-name { font-size: 1.2rem; color: var(--color-text); margin-top: 0.5rem; }
 .credit-name.is-studio { font-size: 1.8rem; color: #FEEB7A; text-shadow: 3px 3px 0px var(--color-shadow); margin-bottom: 1rem; }
-@keyframes scrollUp { 0% { transform: translateY(15px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(15px); } }
+@keyframes scrollUp { 0% { transform: translateY(20px); } 50% { transform: translateY(-20px); } 100% { transform: translateY(20px); } }
 
 /* --- REGLAS PARA MÓVILES --- */
 @media (max-width: 600px) {
     .game-title h1 { font-size: 2.2rem; text-shadow: -1px -1px 0 #E8A444, 2px 2px 0 #A06A38, 3px 3px 0 var(--color-shadow); }
     .menu-button { font-size: 1.2rem; }
-    .cursor { font-size: 1.2rem; }
-    .menu-container { padding: 1.5rem; }
+    .cursor { font-size: 1.2rem; left: -25px; }
+    .menu-container { padding: 1rem; }
     .modal-content h2 { font-size: 1.2rem; }
     .credit-name.is-studio { font-size: 1.5rem; }
 }

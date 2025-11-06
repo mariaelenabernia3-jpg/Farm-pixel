@@ -14,9 +14,10 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    
-    <!-- EL DIV DEL FILTRO OSCURO HA SIDO ELIMINADO COMPLETAMENTE -->
 
+    <!-- Lienzo para dibujar las partículas flotantes -->
+    <canvas id="particles-canvas"></canvas>
+    
     <main class="menu-container">
         
         <header class="game-title">
@@ -35,7 +36,6 @@
     </main>
 
     <!-- ========= MODALES ========= -->
-    <!-- Modal de Opciones -->
     <div id="options-modal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <h2>Opciones</h2>
@@ -53,12 +53,12 @@
         </div>
     </div>
 
-    <!-- Modal de Créditos -->
     <div id="credits-modal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <div class="credits-content">
-                <p class="credit-role">Desarrollador</p>
+                <p class="credit-role">Desarrolladores</p>
                 <p class="credit-name is-studio">DZM Studios</p>
+                <p class="credit-name">ClanHater</p>
                 
                 <p class="credit-role">Beta Tester</p>
                 <p class="credit-name">Clanhater</p>
@@ -66,7 +66,6 @@
             <button class="modal-btn close-modal-btn">Volver</button>
         </div>
     </div>
-
 
     <!-- Efectos de sonido -->
     <audio id="hover-sound" src="assets/sounds/hover.wav" preload="auto"></audio>

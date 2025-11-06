@@ -1,23 +1,35 @@
 window.onload = () => {
     // Referencias a las pantallas
-    const splashScreen = document.getElementById('splash-screen');
+    const dzmScreen = document.getElementById('dzm-screen');
+    const clanhaterScreen = document.getElementById('clanhater-screen');
     const techScreen = document.getElementById('tech-screen');
 
-    // Duraciones ajustadas para un ritmo retro
-    const logoDuration = 3500; // 3.5 segundos
-    const techDuration = 4000; // 4 segundos
+    // Duraciones ajustadas para un ritmo retro y rápido
+    const dzmDuration = 3000;       // 3 segundos
+    const clanhaterDuration = 3000; // 3 segundos
+    const techDuration = 4000;      // 4 segundos
 
     // --- SECUENCIA DE LA INTRO ---
 
-    // 1. Después de que el logo se muestre, cambia a la pantalla de tecnologías.
+    // 1. Después de DZM, muestra ClanHater.
     setTimeout(() => {
-        splashScreen.classList.remove('visible');
-        splashScreen.classList.add('hidden');
+        dzmScreen.classList.remove('visible');
+        dzmScreen.classList.add('hidden');
+        
+        clanhaterScreen.classList.remove('hidden');
+        clanhaterScreen.classList.add('visible');
+    }, dzmDuration);
+
+    // 2. Después de ClanHater, muestra las Tecnologías.
+    setTimeout(() => {
+        clanhaterScreen.classList.remove('visible');
+        clanhaterScreen.classList.add('hidden');
+        
         techScreen.classList.remove('hidden');
         techScreen.classList.add('visible');
-    }, logoDuration);
+    }, dzmDuration + clanhaterDuration);
 
-    // 2. Después de que la pantalla de tecnologías se muestre, inicia la transición al menú.
+    // 3. Después de las Tecnologías, inicia la transición al menú del juego.
     setTimeout(() => {
         // Inicia el fade-out del cuerpo de la página
         document.body.style.opacity = 0;
@@ -27,5 +39,5 @@ window.onload = () => {
             window.location.href = 'menu.html';
         }, 500); // Este tiempo debe coincidir con la transición en el CSS del body
 
-    }, logoDuration + techDuration);
+    }, dzmDuration + clanhaterDuration + techDuration);
 };
