@@ -41,11 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
             hoverSound.currentTime = 0;
             hoverSound.play().catch(e => {});
         }
-
         buttons.forEach((button, index) => {
             button.classList.toggle('active', index === mainMenuIndex);
         });
-
         const selectedButton = buttons[mainMenuIndex];
         const top = selectedButton.offsetTop;
         const left = selectedButton.offsetLeft - menuCursor.offsetWidth - 16;

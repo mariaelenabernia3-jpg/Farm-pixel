@@ -19,7 +19,6 @@ html {
 
 body, html {
     font-family: var(--font-pixel);
-    background-color: var(--color-bg);
     color: var(--color-text);
     display: flex;
     justify-content: center;
@@ -29,7 +28,17 @@ body, html {
     font-smooth: never;
     -webkit-font-smoothing: none;
     cursor: none !important;
+
+    /* Estilos del fondo */
+    background-color: var(--color-bg); /* Color de respaldo si el GIF no carga */
+    background-image: url('../assets/images/fondo.gif');
+    background-position: center center;
+    background-size: cover;
+    
+    /* CLAVE: Esta es la línea que soluciona el problema de duplicación */
+    background-repeat: no-repeat;
 }
+
 
 /* --- Contenedor Principal del Menú --- */
 .menu-container {
@@ -81,24 +90,21 @@ body, html {
 .options-menu { display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 2rem; }
 .option-row { display: flex; justify-content: space-between; align-items: center; font-size: 1.2rem; }
 .toggle-btn { font-family: var(--font-pixel); font-size: 1rem; padding: 0.5rem 1rem; border: 2px solid var(--color-shadow); color: var(--color-text); }
-.toggle-btn[data-toggled="true"] { background-color: #228B22; /* Verde ON */ }
-.toggle-btn[data-toggled="false"] { background-color: var(--color-ui-border); /* Rojo OFF */ }
-.toggle-btn.active { box-shadow: 0 0 10px var(--color-text); } /* Resaltado para teclado */
+.toggle-btn[data-toggled="true"] { background-color: #228B22; }
+.toggle-btn[data-toggled="false"] { background-color: var(--color-ui-border); }
+.toggle-btn.active { box-shadow: 0 0 10px var(--color-text); }
 
-/* --- Estilos para el Modal de Créditos (AJUSTADOS) --- */
+/* --- Estilos para el Modal de Créditos --- */
 .credits-content { animation: scrollUp 15s linear infinite; }
 .credit-role { font-size: 1rem; color: var(--color-highlight); margin-top: 1.5rem; }
-.credit-role:first-child { margin-top: 0; } /* Evita espacio extra al inicio */
+.credit-role:first-child { margin-top: 0; }
 .credit-name { font-size: 1.2rem; color: var(--color-text); }
 .credit-name.is-studio { font-size: 1.8rem; color: #FEEB7A; text-shadow: 3px 3px 0px var(--color-shadow); margin-bottom: 1rem; }
 @keyframes scrollUp { 0% { transform: translateY(15px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(15px); } }
 
 /* --- REGLAS PARA MÓVILES --- */
 @media (max-width: 600px) {
-    .game-title h1 {
-        font-size: 2.2rem;
-        text-shadow: -1px -1px 0 #E8A444, 2px 2px 0 #A06A38, 3px 3px 0 var(--color-shadow);
-    }
+    .game-title h1 { font-size: 2.2rem; text-shadow: -1px -1px 0 #E8A444, 2px 2px 0 #A06A38, 3px 3px 0 var(--color-shadow); }
     .menu-button { font-size: 1.2rem; }
     .cursor { font-size: 1.2rem; }
     .menu-container { padding: 1.5rem; }
