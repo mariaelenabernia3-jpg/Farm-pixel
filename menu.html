@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Farm - Menú Principal</title>
+    
+    <!-- Fuente Pixelada -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <!-- Hoja de estilos -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <main class="menu-container">
+        
+        <header class="game-title">
+            <h1>Pixel Farm</h1>
+        </header>
+        
+        <nav id="main-menu-nav" class="main-menu">
+            <span id="menu-cursor" class="cursor">►</span>
+            
+            <a href="#" class="menu-button" data-action="new-game">Nueva Partida</a>
+            <a href="#" class="menu-button" data-action="load-game">Cargar Partida</a>
+            <a href="#" class="menu-button" data-action="options">Opciones</a>
+            <a href="#" class="menu-button" data-action="credits">Créditos</a>
+        </nav>
+
+    </main>
+
+    <!-- ========= MODALES ========= -->
+
+    <!-- Modal de Opciones -->
+    <div id="options-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2>Opciones</h2>
+            <div class="options-menu">
+                <div class="option-row">
+                    <span>Sonido</span>
+                    <button class="toggle-btn" data-option="sound" data-toggled="true">ON</button>
+                </div>
+                <div class="option-row">
+                    <span>Música</span>
+                    <button class="toggle-btn" data-option="music" data-toggled="true">ON</button>
+                </div>
+            </div>
+            <button class="modal-btn close-modal-btn">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- Modal de Créditos (CONTENIDO ACTUALIZADO) -->
+    <div id="credits-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="credits-content">
+                <p class="credit-role">Desarrollador</p>
+                <p class="credit-name is-studio">DZM Studios</p>
+                
+                <p class="credit-role">Beta Tester</p>
+                <p class="credit-name">Clanhater</p>
+            </div>
+            <button class="modal-btn close-modal-btn">Volver</button>
+        </div>
+    </div>
+
+
+    <!-- Efectos de sonido -->
+    <audio id="hover-sound" src="assets/sounds/hover.wav" preload="auto"></audio>
+    <audio id="click-sound" src="assets/sounds/click.wav" preload="auto"></audio>
+
+    <!-- Script -->
+    <script src="js/main.js"></script>
+</body>
+</html>
