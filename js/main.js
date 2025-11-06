@@ -8,6 +8,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuContainer = document.querySelector('.menu-container');
     const optionsModal = document.getElementById('options-modal');
     const creditsModal = document.getElementById('credits-modal');
+    const loginModal = document.getElementById('login-modal');
+    const registerModal = document.getElementById('register-modal');
+    const userIconButton = document.getElementById('user-icon-button');
+    const userInfoDropdown = document.getElementById('user-info-dropdown');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const switchToRegister = document.getElementById('switch-to-register');
+    const switchToLogin = document.getElementById('switch-to-login');
     const optionToggles = Array.from(optionsModal.querySelectorAll('.toggle-btn'));
     const closeButtons = document.querySelectorAll('.close-modal-btn');
 
@@ -15,25 +23,34 @@ document.addEventListener('DOMContentLoaded', () => {
     let mainMenuIndex = 0;
     let optionsMenuIndex = 0;
     let activeModal = 'none';
+    let currentUser = null;
 
     // --- MANEJO DE MODALES ---
     function openModal(modalId) {
         activeModal = modalId;
-        if (modalId === 'options') {
-            optionsModal.style.display = 'flex';
-        } else if (modalId === 'credits') {
-            creditsModal.style.display = 'flex';
-        }
+        const modals = { 'options': optionsModal, 'credits': creditsModal, 'login': loginModal, 'register': registerModal };
+        if (modals[modalId]) modals[modalId].style.display = 'flex';
         updateModalSelection();
     }
-
     function closeModal() {
-        optionsModal.style.display = 'none';
-        creditsModal.style.display = 'none';
-        activeModal = 'none';
+        if (activeModal !== 'none') {
+            const modals = { 'options': optionsModal, 'credits': creditsModal, 'login': loginModal, 'register': registerModal };
+            if (modals[activeModal]) modals[activeModal].style.display = 'none';
+            activeModal = 'none';
+        }
+        userInfoDropdown.classList.add('hidden');
     }
 
-    // --- ACTUALIZACIÓN DE INTERFAZ ---
+    // --- MANEJO DE LA INTERFAZ DE USUARIO ---
+    function updateUserUI() {
+        if (currentUser) {
+            userInfoDropdown.querySelector('#welcome-message').textContent = `Usuario: ${currentUser}`;
+        } else {
+            userInfoDropdown.classList.add('hidden');
+        }
+    }
+
+    // --- ACTUALIZACIÓN DE INTERFAZ DEL MENÚ ---
     function updateMainMenuSelection(playSound = true) {
         if (playSound) {
             hoverSound.currentTime = 0;
@@ -48,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
         menuCursor.style.top = `${top}px`;
         menuCursor.style.left = `${left}px`;
     }
-    
     function updateModalSelection() {
         if (activeModal === 'options') {
             optionToggles.forEach((btn, index) => {
@@ -59,13 +75,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- LÓGICA DE CONTROL POR TECLADO ---
     window.addEventListener('keydown', (e) => {
-        e.preventDefault();
-        if (e.key === 'Escape') { if(activeModal !== 'none') closeModal(); return; }
-
+        if (e.key === 'Escape') { if (activeModal !== 'none') { e.preventDefault(); closeModal(); } return; }
         switch (activeModal) {
-            case 'none': handleMainMenuInput(e.key); break;
-            case 'options': handleOptionsInput(e.key); break;
-            case 'credits': if (e.key === 'Enter') closeModal(); break;
+            case 'none': e.preventDefault(); handleMainMenuInput(e.key); break;
+            case 'options': e.preventDefault(); handleOptionsInput(e.key); break;
+            case 'credits': e.preventDefault(); if (e.key === 'Enter') closeModal(); break;
+            case 'login': case 'register': break;
         }
     });
 
@@ -81,70 +96,53 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateMainMenuSelection();
                 break;
             case 'Enter':
-                clickSound.currentTime = 0;
-                clickSound.play().catch(e => {});
+                clickSound.currentTime = 0; clickSound.play().catch(e => {});
                 handleMenuAction(buttons[mainMenuIndex].dataset.action);
                 break;
         }
     }
-    
     function handleMenuAction(action) {
         setTimeout(() => {
             switch (action) {
-                case 'new-game': alert('Iniciando...'); break;
-                case 'load-game': alert('Cargando...'); break;
+                case 'play': alert('¡Iniciando el juego!'); break;
                 case 'options': openModal('options'); break;
                 case 'credits': openModal('credits'); break;
             }
         }, 150);
     }
-    
     function handleOptionsInput(key) {
         const currentToggle = optionToggles[optionsMenuIndex];
         switch (key) {
-            case 'ArrowUp': case 'ArrowDown':
-                optionsMenuIndex = (optionsMenuIndex === 0) ? 1 : 0;
-                updateModalSelection();
-                break;
-            case 'Enter':
-                toggleOption(currentToggle);
-                break;
+            case 'ArrowUp': case 'ArrowDown': optionsMenuIndex = (optionsMenuIndex === 0) ? 1 : 0; updateModalSelection(); break;
+            case 'Enter': toggleOption(currentToggle); break;
         }
     }
-
     function toggleOption(button) {
         const isToggled = button.dataset.toggled === 'true';
         button.dataset.toggled = !isToggled;
         button.textContent = !isToggled ? 'ON' : 'OFF';
-        clickSound.currentTime = 0;
-        clickSound.play().catch(e => {});
+        clickSound.currentTime = 0; clickSound.play().catch(e => {});
     }
 
-    // --- EVENTOS TÁCTILES ---
+    // --- EVENTOS TÁCTILES Y DE RATÓN ---
     buttons.forEach((button, index) => {
-        button.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            if (mainMenuIndex !== index) {
-                mainMenuIndex = index;
-                updateMainMenuSelection();
-            }
-            clickSound.currentTime = 0;
-            clickSound.play().catch(e => {});
-            handleMenuAction(button.dataset.action);
-        });
+        function selectButton() { if (mainMenuIndex !== index) { mainMenuIndex = index; updateMainMenuSelection(); } }
+        function activateButton() { clickSound.currentTime = 0; clickSound.play().catch(e => {}); handleMenuAction(button.dataset.action); }
+        button.addEventListener('mouseenter', selectButton);
+        button.addEventListener('click', (e) => { e.preventDefault(); selectButton(); activateButton(); });
+        button.addEventListener('touchstart', (e) => { e.preventDefault(); selectButton(); activateButton(); });
     });
-
-    closeButtons.forEach(btn => btn.addEventListener('touchstart', e => { e.preventDefault(); closeModal(); }));
-    
+    closeButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => { e.preventDefault(); closeModal(); });
+        btn.addEventListener('touchstart', (e) => { e.preventDefault(); closeModal(); });
+    });
     optionToggles.forEach((btn, index) => {
-        btn.addEventListener('touchstart', e => {
-            e.preventDefault();
-            optionsMenuIndex = index;
-            toggleOption(btn);
-        });
+        function activateToggle() { optionsMenuIndex = index; toggleOption(btn); }
+        btn.addEventListener('click', (e) => { e.preventDefault(); activateToggle(); });
+        btn.addEventListener('touchstart', (e) => { e.preventDefault(); activateToggle(); });
     });
 
-    // --- EFECTO PARALLAX CON EL RATÓN ---
+    // --- EFECTO PARALLAX ---
     const parallaxStrength = 20;
     window.addEventListener('mousemove', (e) => {
         if (activeModal === 'none') {
@@ -158,22 +156,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- INICIALIZACIÓN DEL MENÚ ---
-    updateMainMenuSelection(false);
+    // --- LÓGICA DE AUTENTICACIÓN ---
+    userIconButton.addEventListener('click', (e) => {
+        e.preventDefault(); clickSound.currentTime = 0; clickSound.play().catch(e => {});
+        if (currentUser) {
+            userInfoDropdown.classList.toggle('hidden');
+        } else {
+            openModal('login');
+        }
+    });
+    switchToRegister.addEventListener('click', (e) => { e.preventDefault(); closeModal(); setTimeout(() => openModal('register'), 50); });
+    switchToLogin.addEventListener('click', (e) => { e.preventDefault(); closeModal(); setTimeout(() => openModal('login'), 50); });
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault(); const username = e.target.username.value;
+        if (username) { currentUser = username; alert(`¡Bienvenido de vuelta, ${username}!`); closeModal(); updateUserUI(); } 
+        else { alert("Por favor, introduce un nombre de usuario."); }
+    });
+    registerForm.addEventListener('submit', (e) => {
+        e.preventDefault(); const username = e.target.username.value;
+        if (username) { currentUser = username; alert(`¡Cuenta creada para ${username}! Has iniciado sesión.`); closeModal(); updateUserUI(); } 
+        else { alert("Por favor, introduce un nombre de usuario."); }
+    });
+    document.getElementById('logout-link').addEventListener('click', (e) => {
+        e.preventDefault(); alert(`¡Hasta pronto, ${currentUser}!`); currentUser = null; updateUserUI();
+    });
 
-    // --- SISTEMA DE PARTÍCULAS FLOTANTES ---
+    // --- SISTEMA DE PARTÍCULAS ---
     const canvas = document.getElementById('particles-canvas');
     const ctx = canvas.getContext('2d');
     let particlesArray;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    class Particle { constructor(x, y, size, speedX, speedY){this.x=x;this.y=y;this.size=size;this.speedX=speedX;this.speedY=speedY;}draw(){ctx.fillStyle='rgba(255,255,255,0.5)';ctx.fillRect(this.x,this.y,this.size,this.size);}update(){this.x+=this.speedX;this.y+=this.speedY;if(this.y<0){this.y=canvas.height+this.size;this.x=Math.random()*canvas.width;}}}
-    function initParticles() { particlesArray=[];const n=75;for(let i=0;i<n;i++){const s=Math.random()*2+1,x=Math.random()*canvas.width,y=Math.random()*canvas.height,dX=Math.random()*0.4-0.2,dY=-Math.random()*0.5-0.2;particlesArray.push(new Particle(x,y,s,dX,dY));}}
-    function animateParticles() { ctx.clearRect(0,0,canvas.width,canvas.height);if(particlesArray){for(let i=0;i<particlesArray.length;i++){particlesArray[i].update();particlesArray[i].draw();}}requestAnimationFrame(animateParticles);}
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    class Particle { constructor(x,y,s,dX,dY){this.x=x;this.y=y;this.size=s;this.speedX=dX;this.speedY=dY;}draw(){ctx.fillStyle='rgba(255,255,255,0.5)';ctx.fillRect(this.x,this.y,this.size,this.size);}update(){this.x+=this.speedX;this.y+=this.speedY;if(this.y<0){this.y=canvas.height+this.size;this.x=Math.random()*canvas.width;}}}
+    function initParticles(){particlesArray=[];const n=75;for(let i=0;i<n;i++){const s=Math.random()*2+1,x=Math.random()*canvas.width,y=Math.random()*canvas.height,dX=Math.random()*0.4-0.2,dY=-Math.random()*0.5-0.2;particlesArray.push(new Particle(x,y,s,dX,dY));}}
+    function animateParticles(){ctx.clearRect(0,0,canvas.width,canvas.height);if(particlesArray)for(let i=0;i<particlesArray.length;i++){particlesArray[i].update();particlesArray[i].draw();}requestAnimationFrame(animateParticles);}
     initParticles();
     animateParticles();
     
     // --- INICIALIZACIÓN FINAL ---
+    updateMainMenuSelection(false);
+    updateUserUI();
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
