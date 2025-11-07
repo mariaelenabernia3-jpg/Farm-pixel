@@ -101,10 +101,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
         }
     }
-    function handleMenuAction(action) {
+   function handleMenuAction(action) {
         setTimeout(() => {
             switch (action) {
-                case 'play': alert('¡Iniciando el juego!'); break;
+                case 'play': 
+                    window.location.href = 'game.html'; // <--- LÍNEA MODIFICADA
+                    break;
                 case 'options': openModal('options'); break;
                 case 'credits': openModal('credits'); break;
             }

@@ -1,0 +1,19 @@
+/* css/game.css */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden; /* Evita barras de scroll */
+    background-color: #000;
+}
+
+canvas {
+    /* Asegura que la imagen no se vea borrosa en navegadores modernos */
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    display: block; /* Elimina un pequeño espacio que a veces aparece debajo del canvas */
+}
