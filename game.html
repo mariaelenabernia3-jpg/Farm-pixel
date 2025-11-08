@@ -1,17 +1,72 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pixel Farm - Juego</title>
+    <title>Pixel Farm - Granja</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/game.css">
 </head>
 <body>
-    
-    <!-- El lienzo donde se dibujará el mapa -->
-    <canvas id="game-canvas"></canvas>
 
-    <!-- El script que dibujará el mapa -->
+    <div id="game-container">
+        <header id="resource-bar">
+            <div class="resource">
+                <span>Semillas:</span>
+                <span id="carrot-seeds-display">0</span> 🥕
+            </div>
+            <div class="resource">
+                <span>Dinero:</span>
+                <span id="money-display">100</span> 🪙
+            </div>
+        </header>
+
+        <main id="farm-view">
+            <div class="plot" data-plot-id="1">
+                <div class="plot-timer hidden"></div>
+                <div class="plot-buy-overlay hidden"></div>
+            </div>
+            <div class="plot" data-plot-id="2">
+                <div class="plot-timer hidden"></div>
+                <div class="plot-buy-overlay hidden"></div>
+            </div>
+            <div class="plot" data-plot-id="3">
+                <div class="plot-timer hidden"></div>
+                <div class="plot-buy-overlay hidden"></div>
+            </div>
+            <div class="plot" data-plot-id="4">
+                <div class="plot-timer hidden"></div>
+                <div class="plot-buy-overlay hidden"></div>
+            </div>
+        </main>
+
+        <footer id="action-panel">
+            <button class="action-button" data-action="plant">Plantar</button>
+            <button class="action-button" data-action="harvest">Cosechar</button>
+            <button class="action-button" data-action="shop">Tienda</button>
+        </footer>
+    </div>
+
+    <!-- VENTANA MODAL DE LA TIENDA -->
+    <div id="shop-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2>Tienda de Semillas</h2>
+            <div id="shop-items">
+                <div class="shop-item">
+                    <!-- Esta imagen requiere el archivo /assets/carrot.png -->
+                    <img src="assets/carrot.png" alt="Semillas de Zanahoria">
+                    <div class="item-details">
+                        <span class="item-name">Zanahoria</span>
+                        <span class="item-price">Precio: 10 🪙</span>
+                    </div>
+                    <button class="modal-button" data-action="buy-carrot">Comprar</button>
+                </div>
+            </div>
+            <button id="close-shop-button" class="modal-button">Cerrar</button>
+        </div>
+    </div>
+
     <script src="js/game.js"></script>
 </body>
 </html>

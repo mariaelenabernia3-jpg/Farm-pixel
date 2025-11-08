@@ -1,19 +1,139 @@
-/* css/game.css */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* ========================================================= */
+/*  css/game.css (VERSIÓN FINAL CON SPRITES)                 */
+/* ========================================================= */
+
+:root {
+    --font-pixel: 'Press Start 2P', cursive;
+    --color-text: #fff1e8;
+    --color-shadow: #2c2137;
+    --color-highlight: #ff77a8;
+    --color-plot-border: #633b25;
 }
+
+* { margin: 0; padding: 0; box-sizing: border-box; image-rendering: pixelated; }
 
 body {
-    overflow: hidden; /* Evita barras de scroll */
-    background-color: #000;
+    font-family: var(--font-pixel);
+    color: var(--color-text);
+    overflow: hidden;
+    height: 100vh; width: 100vw;
+    cursor: url('../assets/cursor_large.png') 8 8, auto;
+    background-color: #5f8033; /* Color de respaldo */
+    background-image: url('../assets/farm_background.png');
+    background-repeat: repeat;
 }
 
-canvas {
-    /* Asegura que la imagen no se vea borrosa en navegadores modernos */
-    image-rendering: pixelated;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: crisp-edges;
-    display: block; /* Elimina un pequeño espacio que a veces aparece debajo del canvas */
+#game-container {
+    display: flex; flex-direction: column;
+    height: 100%; width: 100%;
+    max-width: 800px; margin: 0 auto;
+}
+
+#resource-bar, #action-panel, .modal-content {
+    padding: 1.5rem;
+    flex-shrink: 0;
+    border-style: solid;
+    border-width: 16px;
+    border-image-source: url('../assets/ui_panel_border.png');
+    border-image-slice: 4;
+    border-image-repeat: repeat;
+    background-color: #432834;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+#resource-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 1rem;
+    text-shadow: 2px 2px 0 var(--color-shadow);
+}
+
+#action-panel { display: flex; justify-content: space-around; gap: 1rem; }
+
+#farm-view {
+    flex-grow: 1; display: flex; flex-wrap: wrap;
+    gap: 20px; padding: 20px;
+    align-content: center; justify-content: center;
+}
+
+.plot {
+    width: 150px; height: 150px;
+    border: 4px solid var(--color-plot-border);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.4), 4px 4px 0px #3E5028;
+    cursor: pointer; transition: transform 0.1s;
+    background-size: cover; background-position: center;
+    position: relative;
+    border-radius: 8px;
+}
+.plot:hover { transform: translateY(-4px); }
+
+.plot-timer {
+    position: absolute; bottom: 5px; right: 5px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fef4e8;
+    padding: 5px 8px; font-size: 0.8rem;
+    text-shadow: 2px 2px 0 var(--color-shadow);
+    border: 2px solid #222034; border-radius: 5px;
+}
+.plot-timer.hidden { display: none; }
+
+/* --- ESTILOS PARA PARCELAS BLOQUEADAS --- */
+.plot.plot-locked {
+    background-color: #523525;
+    background-image: none; /* Quitamos la textura de tierra arada */
+}
+.plot-buy-overlay {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: var(--color-text);
+    text-shadow: 2px 2px 0 var(--color-shadow);
+    font-size: 1.2rem;
+}
+.plot-buy-overlay.hidden { display: none; }
+.plot-buy-overlay::before {
+    content: '🔒';
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* --- SPRITES DE LAS PARCELAS --- */
+.plot-empty { background-image: url('../assets/plot_empty.png'); }
+.plot-carrot-stage-0 { background-image: url('../assets/crop_carrot_stage_0.png'); }
+.plot-carrot-stage-1 { background-image: url('../assets/crop_carrot_stage_1.png'); }
+.plot-carrot-stage-2 { background-image: url('../assets/crop_carrot_stage_2.png'); }
+.plot-carrot-stage-3 { background-image: url('../assets/crop_carrot_stage_3.png'); }
+
+.action-button, .modal-button {
+    font-family: var(--font-pixel); font-size: 1rem; color: var(--color-text);
+    background-color: #754641; border: none;
+    border-bottom: 4px solid #4D2D28;
+    padding: 1rem 1.5rem; cursor: pointer;
+    transition: all 0.1s ease-out;
+    text-shadow: 2px 2px 0 var(--color-shadow);
+    border-radius: 8px;
+}
+.action-button:hover, .modal-button:hover { background-color: #9D5953; }
+.action-button:active, .action-button.active {
+    transform: translateY(4px);
+    border-bottom: 0px;
+    background-color: #9D5953;
+}
+
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+.modal-overlay.hidden { display: none; }
+.modal-content { max-width: 500px; width: 90%; text-align: center; }
+.modal-content h2 { font-size: 1.5rem; margin-bottom: 2rem; color: var(--color-text); text-shadow: 2px 2px 0 var(--color-shadow); }
+#shop-items { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
+.shop-item { display: flex; align-items: center; justify-content: space-between; background-color: #00000025; padding: 1rem; border: 3px solid #6e4958; border-radius: 8px; }
+.shop-item img { width: 48px; height: 48px; }
+.item-details { text-align: left; flex-grow: 1; margin: 0 1rem; }
+
+@media (max-width: 600px) {
+    .plot { width: 120px; height: 120px; }
+    #farm-view { gap: 15px; padding: 15px; }
+    .action-button, .modal-button { font-size: 0.8rem; padding: 0.8rem 1rem; }
+    #action-panel, #resource-bar { padding: 0.8rem; font-size: 1rem; }
 }
