@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let mainMenuIndex = 0;
     let optionsMenuIndex = 0;
     let activeModal = 'none';
-    let currentUser = null;
+    let currentUser = localStorage.getItem('farmPixelUser') || null;
 
     // --- MANEJO DE MODALES ---
     function openModal(modalId) {
@@ -124,6 +124,8 @@ document.addEventListener('DOMContentLoaded', () => {
         button.dataset.toggled = !isToggled;
         button.textContent = !isToggled ? 'ON' : 'OFF';
         clickSound.currentTime = 0; clickSound.play().catch(e => {});
+		const optionName = button.dataset.option;
+		localStorage.setItem(`farmPixelOption_${optionName}`, !isToggled);
     }
 
     // --- EVENTOS TÁCTILES Y DE RATÓN ---
@@ -170,18 +172,36 @@ document.addEventListener('DOMContentLoaded', () => {
     switchToRegister.addEventListener('click', (e) => { e.preventDefault(); closeModal(); setTimeout(() => openModal('register'), 50); });
     switchToLogin.addEventListener('click', (e) => { e.preventDefault(); closeModal(); setTimeout(() => openModal('login'), 50); });
     loginForm.addEventListener('submit', (e) => {
-        e.preventDefault(); const username = e.target.username.value;
-        if (username) { currentUser = username; alert(`¡Bienvenido de vuelta, ${username}!`); closeModal(); updateUserUI(); } 
-        else { alert("Por favor, introduce un nombre de usuario."); }
-    });
+		e.preventDefault(); const username = e.target.username.value;
+		if (username) { 
+			currentUser = username; 
+			localStorage.setItem('farmPixelUser', currentUser); // <--- AÑADIMOS ESTA LÍNEA
+			alert(`¡Bienvenido de vuelta, ${username}!`); 
+			closeModal(); 
+			updateUserUI(); 
+		} else { 
+			alert("Por favor, introduce un nombre de usuario."); 
+		}
+	});
     registerForm.addEventListener('submit', (e) => {
-        e.preventDefault(); const username = e.target.username.value;
-        if (username) { currentUser = username; alert(`¡Cuenta creada para ${username}! Has iniciado sesión.`); closeModal(); updateUserUI(); } 
-        else { alert("Por favor, introduce un nombre de usuario."); }
-    });
+		e.preventDefault(); const username = e.target.username.value;
+		if (username) { 
+			currentUser = username; 
+			localStorage.setItem('farmPixelUser', currentUser); // <--- AÑADIMOS ESTA LÍNEA
+			alert(`¡Cuenta creada para ${username}! Has iniciado sesión.`); 
+			closeModal(); 
+			updateUserUI(); 
+		} else { 
+			alert("Por favor, introduce un nombre de usuario."); 
+		}
+	});
     document.getElementById('logout-link').addEventListener('click', (e) => {
-        e.preventDefault(); alert(`¡Hasta pronto, ${currentUser}!`); currentUser = null; updateUserUI();
-    });
+		e.preventDefault(); 
+		alert(`¡Hasta pronto, ${currentUser}!`); 
+		currentUser = null; 
+		localStorage.removeItem('farmPixelUser'); // <--- AÑADIMOS ESTA LÍNEA
+		updateUserUI();
+	});
 
     // --- SISTEMA DE PARTÍCULAS ---
     const canvas = document.getElementById('particles-canvas');
@@ -195,6 +215,22 @@ document.addEventListener('DOMContentLoaded', () => {
     animateParticles();
     
     // --- INICIALIZACIÓN FINAL ---
+	
+	// Carga y aplica las opciones guardadas al iniciar.
+	optionToggles.forEach(btn => {
+		const optionName = btn.dataset.option;
+		const savedValue = localStorage.getItem(`farmPixelOption_${optionName}`);
+    
+		// Por defecto, las opciones están en 'true' (ON) si no hay nada guardado.
+		let isEnabled = true; 
+		if (savedValue !== null) {
+			isEnabled = (savedValue === 'true');
+		}
+
+		btn.dataset.toggled = isEnabled;
+		btn.textContent = isEnabled ? 'ON' : 'OFF';
+	});
+
     updateMainMenuSelection(false);
     updateUserUI();
     window.addEventListener('resize', () => {

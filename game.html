@@ -12,15 +12,26 @@
 
     <div id="game-container">
         <header id="resource-bar">
-            <div class="resource">
-                <span>Semillas:</span>
-                <span id="carrot-seeds-display">0</span> 🥕
-            </div>
-            <div class="resource">
-                <span>Dinero:</span>
-                <span id="money-display">100</span> 🪙
-            </div>
-        </header>
+			<div class="resource">
+				<span>Semillas:</span>
+				<span id="carrot-seeds-display">0</span> 🥕
+			</div>
+			<div class="resource">
+				<span>Energía:</span>
+				<span id="energy-display">100</span> ⚡
+			</div>
+			<div class="resource">
+				<span>Dinero:</span>
+				<span id="money-display">100</span> 💰
+			</div>
+			<div class="level-container">
+				<div id="level-display" class="level-badge">Nvl 1</div>
+				<div class="xp-bar-background">
+					<div id="xp-bar-fill" class="xp-bar-fill"></div>
+					<span id="xp-text" class="xp-text">0 / 100</span>
+				</div>
+			</div>
+		</header>
 
         <main id="farm-view">
             <div class="plot" data-plot-id="1">
@@ -44,7 +55,11 @@
         <footer id="action-panel">
             <button class="action-button" data-action="plant">Plantar</button>
             <button class="action-button" data-action="harvest">Cosechar</button>
+			<button class="action-button" data-action="inventory">Inventario</button>
+			<button class="action-button" data-action="skills">Habilidades</button>
+			<button class="action-button" data-action="talents">Talentos</button>
             <button class="action-button" data-action="shop">Tienda</button>
+			<button class="action-button" data-action="quests">Tablón</button>
         </footer>
     </div>
 
@@ -53,20 +68,73 @@
         <div class="modal-content">
             <h2>Tienda de Semillas</h2>
             <div id="shop-items">
-                <div class="shop-item">
-                    <!-- Esta imagen requiere el archivo /assets/carrot.png -->
-                    <img src="assets/carrot.png" alt="Semillas de Zanahoria">
-                    <div class="item-details">
-                        <span class="item-name">Zanahoria</span>
-                        <span class="item-price">Precio: 10 🪙</span>
-                    </div>
-                    <button class="modal-button" data-action="buy-carrot">Comprar</button>
-                </div>
+                <div class="shop-item"></div>
             </div>
             <button id="close-shop-button" class="modal-button">Cerrar</button>
         </div>
     </div>
+	
+	<!-- ========= VENTANA MODAL DEL INVENTARIO ========= -->
+	<div id="inventory-modal" class="modal-overlay hidden">
+		<div class="modal-content">
+			<h2>Mi Inventario</h2>
+			<!-- El contenido del inventario se generará aquí con JavaScript -->
+			<div id="inventory-items"></div>
+			<button id="close-inventory-button" class="modal-button">Cerrar</button>
+		</div>
+	</div>
+	
+	<!-- ========= VENTANA MODAL DE HABILIDADES ========= -->
+	<div id="skills-modal" class="modal-overlay hidden">
+		<div class="modal-content">
+			<h2>Libro de Habilidades</h2>
+			<!-- El contenido de las habilidades se generará aquí con JavaScript -->
+			<div id="skills-container"></div>
+			<button id="close-skills-button" class="modal-button">Cerrar</button>
+		</div>
+	</div>
+	
+	<!-- ========= VENTANA MODAL DEL TABLÓN DE ANUNCIOS ========= -->
+	<div id="quests-modal" class="modal-overlay hidden">
+		<div class="modal-content">
+			<h2>Tablón de Anuncios</h2>
+			<p class="modal-subtitle">Nuevos pedidos cada día</p>
+			<!-- El contenido de las misiones se generará aquí con JavaScript -->
+			<div id="quests-container"></div>
+			<button id="close-quests-button" class="modal-button">Cerrar</button>
+		</div>
+	</div>
 
+	<!-- ========= VENTANA MODAL DE RECOMPENSA DIARIA ========= -->
+	<div id="daily-reward-modal" class="modal-overlay hidden">
+		<div class="modal-content">
+			<h2>¡Bono Diario!</h2>
+			<p class="modal-subtitle">Gracias por volver a tu granja</p>
+			<div class="daily-reward-presentation">
+				🎁
+				<h3>Tu recompensa de hoy:</h3>
+				<p id="daily-reward-text">¡Energía Restaurada!</p>
+			</div>
+			<button id="claim-reward-button" class="modal-button">Reclamar</button>
+		</div>
+	</div>
+	
+	<!-- ========= VENTANA MODAL DEL ÁRBOL DE TALENTOS ========= -->
+	<div id="talents-modal" class="modal-overlay hidden">
+		<div class="modal-content">
+			<h2>Árbol de Talentos</h2>
+			<div class="talent-points-display">
+				Puntos Disponibles: <span id="talent-points-display-count">0</span>
+			</div>
+			<!-- El árbol de talentos se generará aquí con JavaScript -->
+			<div id="talent-tree-container">
+				<!-- Aquí se dibujarán las filas y columnas del árbol -->
+			</div>
+			<button id="close-talents-button" class="modal-button">Cerrar</button>
+		</div>
+	</div>
+
+	<script src="js/data.js"></script>
     <script src="js/game.js"></script>
 </body>
 </html>

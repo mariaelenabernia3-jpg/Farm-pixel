@@ -47,7 +47,12 @@ body {
     text-shadow: 2px 2px 0 var(--color-shadow);
 }
 
-#action-panel { display: flex; justify-content: space-around; gap: 1rem; }
+#action-panel {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;   
+    gap: 1rem;     
+}
 
 #farm-view {
     flex-grow: 1; display: flex; flex-wrap: wrap;
@@ -124,16 +129,364 @@ body {
 
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; }
 .modal-overlay.hidden { display: none; }
-.modal-content { max-width: 500px; width: 90%; text-align: center; }
+.modal-content { max-width: 600px; width: 90%; text-align: center; }
 .modal-content h2 { font-size: 1.5rem; margin-bottom: 2rem; color: var(--color-text); text-shadow: 2px 2px 0 var(--color-shadow); }
-#shop-items { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
-.shop-item { display: flex; align-items: center; justify-content: space-between; background-color: #00000025; padding: 1rem; border: 3px solid #6e4958; border-radius: 8px; }
+#shop-items {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    max-height: 50vh;
+    overflow-y: auto;
+    padding-right: 1rem;
+}
+.shop-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #00000025;
+    padding: 1rem;
+    border: 3px solid #6e4958;
+    border-radius: 8px;
+}
 .shop-item img { width: 48px; height: 48px; }
 .item-details { text-align: left; flex-grow: 1; margin: 0 1rem; }
 
 @media (max-width: 600px) {
     .plot { width: 120px; height: 120px; }
     #farm-view { gap: 15px; padding: 15px; }
-    .action-button, .modal-button { font-size: 0.8rem; padding: 0.8rem 1rem; }
-    #action-panel, #resource-bar { padding: 0.8rem; font-size: 1rem; }
+
+    .action-button, .modal-button {
+        font-size: 0.8rem;
+        padding: 0.8rem 1rem;
+        flex-grow: 1;   
+        flex-basis: 40%; 
+    }
+
+    #action-panel {
+        padding: 0.8rem;
+        gap: 0.8rem; 
+    }
+    
+    #resource-bar {
+        padding: 0.8rem;
+        font-size: 1rem;
+    }
+}
+
+/* --- ESTILOS PARA LA BARRA DE NIVEL Y XP --- */
+.level-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%; /* Ocupa el espacio disponible */
+    grid-column: 1 / -1; /* Si usas grid, para que ocupe toda la fila */
+    padding: 0.5rem 0;
+}
+.level-badge {
+    background-color: #9D5953;
+    padding: 0.5rem;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    min-width: 50px;
+    text-align: center;
+    border: 2px solid var(--color-shadow);
+}
+.xp-bar-background {
+    flex-grow: 1;
+    height: 25px;
+    background-color: var(--color-shadow);
+    border: 2px solid #222034;
+    border-radius: 15px;
+    position: relative;
+    overflow: hidden;
+}
+.xp-bar-fill {
+    height: 100%;
+    width: 0%; /* Empezamos en 0% */
+    background-color: #83d6a6;
+    transition: width 0.3s ease-out; /* Animación suave */
+}
+.xp-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.8rem;
+    color: var(--color-text);
+    text-shadow: 1px 1px 0 var(--color-shadow);
+    white-space: nowrap;
+}
+/* --- Ajuste para que la resource-bar pueda tener varias filas --- */
+#resource-bar {
+    flex-wrap: wrap; /* Permite que los elementos pasen a la siguiente línea */
+}
+
+/* --- ESTILOS MEJORADOS PARA EL MODAL DE HABILIDADES --- */
+#skills-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+.skill-entry {
+    background-color: rgba(0,0,0,0.2);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 2px solid var(--color-plot-border);
+}
+.skill-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+.skill-name {
+    font-size: 1.2rem;
+    color: #feeb7a;
+}
+.skill-next-unlock {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+.skill-xp-bar {
+    height: 20px;
+    margin-bottom: 1rem;
+}
+.skill-entry h4 {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+}
+.skill-unlocks-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.skill-unlock {
+    font-size: 0.9rem;
+}
+.skill-unlock.unlocked {
+    color: #83d6a6; /* Verde para lo desbloqueado */
+}
+.skill-unlock.locked {
+    color: var(--color-text);
+    opacity: 0.6; /* Atenuado para lo bloqueado */
+}
+
+/* --- ESTILOS PARA EL MODAL DE MISIONES --- */
+#quests-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem; /* Espacio entre cada misión */
+    margin-bottom: 2rem;
+    max-height: 40vh; /* Límite de altura para que sea scrollable en pantallas pequeñas */
+    overflow-y: auto; /* Añade barra de scroll si el contenido es muy alto */
+    padding-right: 1rem; /* Espacio para la barra de scroll */
+}
+.modal-subtitle {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    margin-top: -1.5rem;
+    margin-bottom: 2rem;
+}
+.quest-entry {
+    background-color: rgba(0,0,0,0.2);
+    border: 2px solid var(--color-plot-border);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: left;
+}
+.quest-title {
+    color: var(--color-highlight);
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+.quest-description {
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+}
+.quest-details {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.quest-requirements, .quest-rewards {
+    flex-basis: 50%;
+}
+.quest-details h4 {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+.quest-details span {
+    display: block;
+    font-size: 0.8rem;
+}
+.quest-entry button {
+    width: 100%;
+}
+.quest-entry button:disabled {
+    background-color: #4D2D28;
+    border-bottom-color: #2c2137;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* --- ESTILOS PARA EL MODAL DE RECOMPENSA DIARIA --- */
+.daily-reward-presentation {
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    padding: 2rem 1rem;
+    margin: 2rem 0;
+    text-align: center;
+}
+.daily-reward-presentation h3 {
+    margin: 1rem 0 0.5rem 0;
+}
+.daily-reward-presentation p {
+    color: #83d6a6; /* Un color verde para destacar */
+    font-size: 1.2rem;
+}
+.daily-reward-presentation .gift-icon { /* Reemplaza el emoji si prefieres una imagen */
+    font-size: 4rem;
+}
+
+.item-actions {
+    display: flex;
+    flex-direction: column; /* Botones uno encima del otro */
+    gap: 0.5rem; /* Pequeño espacio entre botones */
+}
+
+/* --- ESTILOS MEJORADOS PARA EL MODAL DEL ÁRBOL DE TALENTOS --- */
+.talent-points-display {
+    margin-top: -1.5rem;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    color: #83d6a6;
+    text-shadow: 2px 2px 0 var(--color-shadow);
+}
+
+#talent-tree-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 columnas de igual tamaño */
+    gap: 30px 20px; /* 30px de espacio vertical, 20px horizontal */
+    padding: 20px;
+    margin-bottom: 2rem;
+    max-height: 55vh; /* Altura máxima antes de que aparezca el scroll */
+    overflow-y: auto; /* Scroll vertical si es necesario */
+}
+
+.talent-node {
+    border: 3px solid var(--color-plot-border);
+    background-color: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    padding: 0.5rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 80px; /* Altura mínima para que el grid se vea bien */
+}
+.talent-node:hover {
+    background-color: rgba(0,0,0,0.5);
+    transform: scale(1.05);
+}
+.talent-name { font-size: 0.8rem; color: var(--color-text); }
+.talent-rank { font-size: 0.9rem; color: #feeb7a; margin-top: 0.25rem; }
+
+/* Estados de los Nodos */
+.talent-node.locked { opacity: 0.5; background-color: var(--color-shadow); cursor: not-allowed; }
+.talent-node.available { border-color: #83d6a6; box-shadow: 0 0 10px #83d6a6; }
+.talent-node.maxed { border-color: #feeb7a; }
+
+/* --- CONECTORES VISUALES --- */
+/* Base para todos los conectores */
+.talent-node::before {
+    content: '';
+    position: absolute;
+    background-color: var(--color-plot-border);
+    z-index: -1; /* Detrás del nodo */
+}
+/* Conector que va hacia ARRIBA (para conectar con el nodo padre) */
+.connector-up::before {
+    width: 4px;
+    height: calc(30px + 3px); /* Altura del gap + borde */
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 100%;
+}
+/* Conector que va en DIAGONAL ARRIBA-IZQUIERDA */
+.connector-up-left::before {
+    width: calc(50% + 10px + 2px); /* Mitad del nodo + mitad del gap + mitad del grosor de la línea */
+    height: 4px;
+    left: 50%;
+    bottom: 50%;
+    transform: translateY(-50%) skewY(25deg);
+    transform-origin: left;
+}
+/* Conector que va en DIAGONAL ARRIBA-DERECHA */
+.connector-up-right::before {
+    width: calc(50% + 10px + 2px);
+    height: 4px;
+    right: 50%;
+    bottom: 50%;
+    transform: translateY(-50%) skewY(-25deg);
+    transform-origin: right;
+}
+/* Coloreamos el conector si el nodo está desbloqueado */
+.talent-node.unlocked::before, .talent-node.maxed::before {
+    background-color: #feeb7a;
+}
+
+/* Tooltip para mostrar la descripción */
+.modal-content {
+    position: relative; /* ¡MUY IMPORTANTE! */
+}
+
+#talent-tooltip-central {
+    position: absolute; /* Flotará por encima del contenido */
+    bottom: 80px; /* Posicionado cerca del botón de cerrar */
+    left: 50%;
+    transform: translateX(-50%); /* Centrado horizontalmente */
+    
+    background-color: var(--color-shadow);
+    border: 2px solid var(--color-ui-bg);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: left;
+    width: 90%;
+    max-width: 400px;
+    font-size: 0.8rem;
+    
+    opacity: 0; /* Empezamos invisible */
+    visibility: hidden;
+    pointer-events: none; /* No se puede interactuar con él */
+    transition: opacity 0.2s ease-out, visibility 0.2s ease-out;
+    z-index: 10; /* Aseguramos que esté por encima del árbol */
+}
+#talent-tooltip-central.visible {
+    opacity: 1;
+    visibility: visible;
+}
+.tooltip-title {
+    font-size: 1rem;
+    color: #feeb7a;
+    margin-bottom: 0.5rem;
+}
+.tooltip-desc { margin-bottom: 0.5rem; }
+.tooltip-req, .tooltip-cost, .tooltip-rank { opacity: 0.8; }
+.tooltip-req.met { color: #83d6a6; }
+.tooltip-req.unmet { color: #ff77a8; }
+
+/* css/game.css */
+.inventory-entry[data-item-id*="_seed"]:hover {
+    background-color: rgba(0,0,0,0.5); /* Se ilumina al pasar el ratón */
+}
+.inventory-entry[data-item-id*="_seed"] {
+    cursor: pointer; /* Muestra un cursor de mano sobre las semillas */
 }
