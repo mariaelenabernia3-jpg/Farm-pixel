@@ -42,9 +42,22 @@ body {
 }
 
 #resource-bar {
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.25rem 0.75rem; /* Reducimos aún más el padding */
+    border-width: 12px;      /* Borde más fino */
+    border-image-source: url('../assets/ui_panel_border.png');
+    border-image-slice: 4;
+    border-image-repeat: repeat;
+    background-color: #432834;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     text-shadow: 2px 2px 0 var(--color-shadow);
+    flex-wrap: nowrap;
+}
+#resource-bar {
+    flex-wrap: nowrap; 
 }
 
 #action-panel {
@@ -54,23 +67,50 @@ body {
     gap: 1rem;     
 }
 
-#farm-view {
-    flex-grow: 1; display: flex; flex-wrap: wrap;
-    gap: 20px; padding: 20px;
-    align-content: center; justify-content: center;
+#camera-viewport {
+    flex-grow: 1;
+    overflow: hidden;
+    cursor: grab;
+    position: relative;
 }
 
+#camera-viewport:active {
+    cursor: grabbing;
+}
+
+#farm-view {
+    display: grid;
+    gap: 2px;
+	position: absolute;
+}
+
+.grid-tile {
+    width: 64px;
+    height: 64px;
+    background-size: cover;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); 
+}
+.grass-tile {
+    background-color: #5f8033;
+}
+.water-tile {
+    background-image: url('../assets/tilemar.png');
+    background-size: cover;
+}
 .plot {
-    width: 150px; height: 150px;
     border: 4px solid var(--color-plot-border);
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.4), 4px 4px 0px #3E5028;
-    cursor: pointer; transition: transform 0.1s;
-    background-size: cover; background-position: center;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.4);
+    cursor: pointer;
+    transition: transform 0.1s;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
     position: relative;
     border-radius: 8px;
 }
-.plot:hover { transform: translateY(-4px); }
-
+.plot:hover {
+    transform: scale(1.05);
+}
 .plot-timer {
     position: absolute; bottom: 5px; right: 5px;
     background-color: rgba(0, 0, 0, 0.7);
@@ -105,7 +145,7 @@ body {
 }
 
 /* --- SPRITES DE LAS PARCELAS --- */
-.plot-empty { background-image: url('../assets/plot_empty.png'); }
+.plot-empty { background-image: url('../assets/plot.png'); }
 .plot-carrot-stage-0 { background-image: url('../assets/crop_carrot_stage_0.png'); }
 .plot-carrot-stage-1 { background-image: url('../assets/crop_carrot_stage_1.png'); }
 .plot-carrot-stage-2 { background-image: url('../assets/crop_carrot_stage_2.png'); }
@@ -216,10 +256,6 @@ body {
     color: var(--color-text);
     text-shadow: 1px 1px 0 var(--color-shadow);
     white-space: nowrap;
-}
-/* --- Ajuste para que la resource-bar pueda tener varias filas --- */
-#resource-bar {
-    flex-wrap: wrap; /* Permite que los elementos pasen a la siguiente línea */
 }
 
 /* --- ESTILOS MEJORADOS PARA EL MODAL DE HABILIDADES --- */
@@ -489,4 +525,176 @@ body {
 }
 .inventory-entry[data-item-id*="_seed"] {
     cursor: pointer; /* Muestra un cursor de mano sobre las semillas */
+}
+
+/* --- ESTILOS PARA EL MODO CONSTRUCCIÓN --- */
+#build-items-container {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+.build-item {
+    flex-direction: column;
+    cursor: pointer;
+    padding: 1rem;
+}
+.build-item:hover {
+    background-color: rgba(0,0,0,0.5);
+}
+.build-item img {
+    width: 64px; height: 64px;
+    margin-bottom: 0.5rem;
+}
+
+/* Estilos para la VISTA FANTASMA */
+.ghost-preview {
+    position: absolute;
+    top: 0; 
+    left: 0;
+    background-color: rgba(131, 214, 166, 0.5);
+    border: 2px dashed #ffffff;
+    z-index: 5;
+    pointer-events: none;
+}
+.ghost-preview.invalid {
+    background-color: rgba(255, 119, 168, 0.5);
+    border-color: #ff77a8;
+}
+
+.resource-bar-left, .resource-bar-center, .resource-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.resource-bar-center {
+    flex-grow: 1; /* Ocupa el espacio sobrante en el centro */
+    justify-content: center; /* Centra los recursos */
+}
+
+/* MODIFICADO: Ajustamos el level-container para que no ocupe toda la fila */
+.level-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 200px;
+}
+
+
+/* --- NUEVAS REGLAS para los botones de icono circulares --- */
+.icon-button-circle {
+    font-family: var(--font-pixel);
+    color: var(--color-text);
+    background-color: #754641;
+    border: none;
+    border-bottom: 4px solid #4D2D28;
+    width: 40px;  
+    height: 40px; 
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.1s ease-out;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1rem;
+	border-bottom-width: 3px;
+}
+
+.icon-button-circle:hover {
+    background-color: #9D5953;
+}
+
+.icon-button-circle:active {
+    transform: translateY(3px);
+    border-bottom: 0px;
+    background-color: #9D5953;
+}
+
+/* ========================================================= */
+/* --- NUEVOS ESTILOS PARA LA BARRA DE HERRAMIENTAS (HOTBAR) --- */
+/* ========================================================= */
+
+/* El contenedor principal que se posiciona en la parte inferior */
+#toolbar-container {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%); /* Truco para centrarlo perfectamente */
+    
+    display: flex;
+    align-items: center; /* Alinea el hotbar y el botón de inventario verticalmente */
+    gap: 1rem; /* Espacio entre el hotbar y el botón */
+    
+    z-index: 50; /* Asegura que esté por encima del mapa */
+}
+
+/* El contenedor de los 9 slots */
+#hotbar {
+    display: flex;
+    gap: 4px; /* Pequeño espacio entre cada slot */
+    
+    /* Reutilizamos el estilo de borde de los otros paneles */
+    padding: 8px;
+    border-style: solid;
+    border-width: 12px;
+    border-image-source: url('../assets/ui_panel_border.png');
+    border-image-slice: 4;
+    border-image-repeat: repeat;
+    background-color: #432834;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+/* Estilo para cada uno de los slots del inventario */
+.hotbar-slot {
+    width: 64px;
+    height: 64px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 3px solid var(--color-plot-border);
+    border-radius: 8px;
+    
+    /* Para posicionar el contador de ítems */
+    position: relative; 
+    
+    /* Para mostrar la imagen del ítem */
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    
+    cursor: pointer;
+    transition: transform 0.1s ease-out;
+}
+
+.hotbar-slot:hover {
+    transform: scale(1.05); /* Un pequeño efecto al pasar el ratón */
+}
+
+/* Estilo para el slot que está actualmente seleccionado */
+.hotbar-slot.active-slot {
+    border-color: #feeb7a; /* Un borde amarillo brillante para destacarlo */
+    box-shadow: 0 0 10px #feeb7a;
+    transform: scale(1.1);
+}
+
+/* Estilo para el número que muestra la cantidad de ítems */
+.item-count {
+    position: absolute;
+    bottom: 2px;
+    right: 5px;
+    
+    font-size: 1rem;
+    color: var(--color-text);
+    text-shadow: 2px 2px 0 var(--color-shadow);
+    
+    /* Evita que el texto del contador intercepte los clics del ratón */
+    pointer-events: none; 
+}
+
+/* Ajuste para el botón de inventario */
+#inventory-button {
+    /* El botón ya usa .icon-button-circle, así que solo necesita un tamaño */
+    width: 64px;
+    height: 64px;
+    font-size: 2rem; /* Tamaño del emoji de la mochila */
 }

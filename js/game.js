@@ -1,12 +1,68 @@
 /* =================================================== */
-/*     js/game.js (Con Compra de Parcelas y Cosecha)   */
+/*     js/game.js                                      */
 /* =================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
 	
+	const moneyDisplay = document.getElementById('money-display');
+	const energyDisplay = document.getElementById('energy-display');
+	const levelDisplay = document.getElementById('level-display');
+	const xpBarFill = document.getElementById('xp-bar-fill');
+	const xpText = document.getElementById('xp-text');
+	const skillsButton = document.getElementById('skills-button');
+	const skillsModal = document.getElementById('skills-modal');
+	const closeSkillsButton = document.getElementById('close-skills-button');
+	const skillsContainer = document.getElementById('skills-container');
+	const talentsButton = document.getElementById('talents-button');
+	const talentsModal = document.getElementById('talents-modal');
+	const closeTalentsButton = document.getElementById('close-talents-button');
+	const talentTreeContainer = document.getElementById('talent-tree-container');
+	const talentPointsDisplay = document.getElementById('talent-points-display-count');
+	const cameraViewport = document.getElementById('camera-viewport');
+	const questsButton = document.getElementById('quests-button');
+	const questsModal = document.getElementById('quests-modal');
+	const closeQuestsButton = document.getElementById('close-quests-button');
+	const questsContainer = document.getElementById('quests-container');
+	const dailyRewardModal = document.getElementById('daily-reward-modal');
+	const claimRewardButton = document.getElementById('claim-reward-button');
+	const dailyRewardText = document.getElementById('daily-reward-text');
+    const shopButton = document.getElementById('shop-button');
+    const shopModal = document.getElementById('shop-modal');
+    const closeShopButton = document.getElementById('close-shop-button');
+	const inventoryButton = document.getElementById('inventory-button');
+	const inventoryModal = document.getElementById('inventory-modal');
+	const closeInventoryButton = document.getElementById('close-inventory-button');
+	const inventoryItemsContainer = document.getElementById('inventory-items');
+
+	let gameState;
+	let lastTickTime = Date.now();
+	let todaysReward = null;
+	let talentTooltipCentral = null;
+	let dragStartPos = { x: 0, y: 0 };
+	const camera = { isDragging: false, lastX: 0, lastY: 0, x: 0, y: 0, zoom: 1 }; // MODIFICADO: Añadimos zoom
+	const ZOOM_SPEED = 0.1;
+	let minZoom = 0.5;      
+	const MAX_ZOOM = 2;   
+	let initialPinchDistance = null;
+	const TILE_SIZE = 64;
+	const GRID_GAP = 2;
+	const ALL_CROP_CLASSES = ['plot-empty', 'plot-carrot-stage-0', 'plot-carrot-stage-1', 'plot-carrot-stage-2', 'plot-carrot-stage-3'];
+	
 	// Esta función nos da el estado inicial para un jugador nuevo.
     function getInitialState() {
-		return {
+		const islandLayout = [
+			"WWWWWWWWWW",
+			"WWLLLLLLWW",
+			"WLLLLLLLLW",
+			"WLLLLLLLLW",
+			"WLLLLLLLLW",
+			"WLLLLLLLLW",
+			"WLLLLLLLLW",
+			"WLLLLLLLLW",
+			"WWLLLLLLWW",
+			"WWWWWWWWWW",
+		];
+		let state = {
 			// --- SECCIÓN DEL JUGADOR ---
 			player: {
 				money: GAME_DATA.CONFIG.PLAYER_STARTING_MONEY,
@@ -19,29 +75,44 @@ document.addEventListener('DOMContentLoaded', () => {
 				unlockedTalents: {},
 				skills: {
 					farming: { level: 1, xp: 0 }
-				}
+				},
+				hotbar: [null, null, null, null, null, null, null, null, null],
+				activeSlot: 0
 			},
-
 			// --- SECCIÓN DE INVENTARIO ---
 			inventory: {},
-        
-			// --- SECCIÓN DE PROGRESO DEL MUNDO ---
-			plots: {
-				1: { isLocked: false, crop: null, plantedAt: 0 },
-				2: { isLocked: true, crop: null, plantedAt: 0 },
-				3: { isLocked: true, crop: null, plantedAt: 0 },
-				4: { isLocked: true, crop: null, plantedAt: 0 },
+			// --- SECCIÓN DEL MAPA ---
+			farm: {
+				gridSize: { w: 10, h: 10 },
+				grid: [],
+				placedObjects: {}
 			},
-			
 			// --- SECCIÓN DE MISIONES ---
 			quests: {
 				lastGeneratedDate: null, 
 				active: [] // Ej: ['collect_carrots_1', 'need_flour_1']
 			},
-        
-			// --- ESTADO DE LA UI ---
-			currentSelection: null,
 		};
+		// Inicializamos la cuadrícula vacía
+		for (let y = 0; y < state.farm.gridSize.h; y++) {
+			state.farm.grid[y] = [];
+			for (let x = 0; x < state.farm.gridSize.w; x++) {
+				if (islandLayout[y][x] === 'L') {
+					state.farm.grid[y][x] = { base: 'grass', objectId: null };
+				} else {
+					state.farm.grid[y][x] = { base: 'water', objectId: null };
+				}
+			}
+		}
+
+		const centerX = Math.floor(state.farm.gridSize.w / 2) - 1;
+		const centerY = Math.floor(state.farm.gridSize.h / 2) - 1;
+		placeObject(state.farm, 'plot', centerX, centerY);
+		placeObject(state.farm, 'plot', centerX + 1, centerY);
+		placeObject(state.farm, 'plot', centerX, centerY + 1);
+		placeObject(state.farm, 'plot', centerX + 1, centerY + 1);
+		
+		return state;
 	}
 
     // Guarda el estado actual del juego en el localStorage del navegador.
@@ -60,26 +131,41 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	}
 
-    let gameState;
 	gameState = loadGameState();
 	processOfflineProgress();
 	saveGameState();
+	renderGrid();
+	syncHotbarWithInventory();
 	
-	// Añade una cantidad específica de un item al inventario del jugador.
-	function addToInventory(itemId, quantity) {
-		// Comprueba si el jugador ya tiene este item en su inventario
-		if (!gameState.inventory[itemId]) {
-			// Si no lo tiene, inicializa la cantidad en 0
-			gameState.inventory[itemId] = 0;
+	function syncHotbarWithInventory() {
+		const inventoryKeys = Object.keys(gameState.inventory);
+    
+		// Llenamos el hotbar con los primeros 9 tipos de ítems del inventario
+		for (let i = 0; i < 9; i++) {
+			if (inventoryKeys[i]) {
+				const itemId = inventoryKeys[i];
+				const quantity = gameState.inventory[itemId];
+				gameState.player.hotbar[i] = { id: itemId, quantity: quantity };
+			} else {
+				// Si no hay suficientes ítems, los slots restantes quedan vacíos
+				gameState.player.hotbar[i] = null;
+			}
 		}
-		// Añade la cantidad especificada
-		gameState.inventory[itemId] += quantity;
-		console.log(`Añadido ${quantity} de ${itemId} al inventario.`);
+		// Después de sincronizar, siempre redibujamos el hotbar
+		renderHotbar();
 	}
 	
-	// Elimina una cantidad específica de un item del inventario.
+	function addToInventory(itemId, quantity) {
+		if (!gameState.inventory[itemId]) {
+			gameState.inventory[itemId] = 0;
+		}
+		gameState.inventory[itemId] += quantity;
+		console.log(`Añadido ${quantity} de ${itemId} al inventario.`);
+    
+		syncHotbarWithInventory(); // <-- AÑADE ESTA LÍNEA
+	}
+
 	function removeFromInventory(itemId, quantity) {
-		// Primero, verificamos si tenemos suficientes items para eliminar
 		if (!hasInInventory(itemId, quantity)) {
 			console.error(`Intento de eliminar ${quantity} de ${itemId}, pero no hay suficientes.`);
 			return false;
@@ -89,6 +175,8 @@ document.addEventListener('DOMContentLoaded', () => {
 			delete gameState.inventory[itemId];
 		}
 		console.log(`Eliminado ${quantity} de ${itemId} del inventario.`);
+
+		syncHotbarWithInventory(); // <-- AÑADE ESTA LÍNEA
 		return true;
 	}
 
@@ -565,42 +653,40 @@ document.addEventListener('DOMContentLoaded', () => {
 		inventoryModal.classList.add('hidden');
 		updateUI();
 	}
+	
+	function isAreaFree(farmState, x, y, width, height) {
+		if (x + width > farmState.gridSize.w || y + height > farmState.gridSize.h) return false;
+		for (let row = y; row < y + height; row++) {
+			for (let col = x; col < x + width; col++) {
+				if (farmState.grid[row][col].objectId !== null) return false;
+			}
+		}
+		return true;
+	}
 
-    const moneyDisplay = document.getElementById('money-display');
-    const carrotSeedsDisplay = document.getElementById('carrot-seeds-display');
-	const energyDisplay = document.getElementById('energy-display');
-	const levelDisplay = document.getElementById('level-display');
-	const xpBarFill = document.getElementById('xp-bar-fill');
-	const xpText = document.getElementById('xp-text');
-	const skillsButton = document.querySelector('.action-button[data-action="skills"]');
-	const skillsModal = document.getElementById('skills-modal');
-	const closeSkillsButton = document.getElementById('close-skills-button');
-	const skillsContainer = document.getElementById('skills-container');
-	const talentsButton = document.querySelector('.action-button[data-action="talents"]');
-	const talentsModal = document.getElementById('talents-modal');
-	const closeTalentsButton = document.getElementById('close-talents-button');
-	const talentTreeContainer = document.getElementById('talent-tree-container');
-	const talentPointsDisplay = document.getElementById('talent-points-display-count');
-	let talentTooltipCentral = null;
-	const questsButton = document.querySelector('.action-button[data-action="quests"]');
-	const questsModal = document.getElementById('quests-modal');
-	const closeQuestsButton = document.getElementById('close-quests-button');
-	const questsContainer = document.getElementById('quests-container');
-	const dailyRewardModal = document.getElementById('daily-reward-modal');
-	const claimRewardButton = document.getElementById('claim-reward-button');
-	const dailyRewardText = document.getElementById('daily-reward-text');
-    const plotElements = document.querySelectorAll('.plot');
-    const plantButton = document.querySelector('.action-button[data-action="plant"]');
-    const harvestButton = document.querySelector('.action-button[data-action="harvest"]');
-    const shopButton = document.querySelector('.action-button[data-action="shop"]');
-    const shopModal = document.getElementById('shop-modal');
-    const closeShopButton = document.getElementById('close-shop-button');
-	const inventoryButton = document.querySelector('.action-button[data-action="inventory"]');
-	const inventoryModal = document.getElementById('inventory-modal');
-	const closeInventoryButton = document.getElementById('close-inventory-button');
-	const inventoryItemsContainer = document.getElementById('inventory-items');
+	function placeObject(farmState, objectType, x, y) {
+		const objectData = GAME_DATA.PLACEABLE_OBJECTS[objectType];
+		if (!objectData) return null;
+		if (!isAreaFree(farmState, x, y, objectData.size.w, objectData.size.h)) return null;
 
-    const ALL_CROP_CLASSES = ['plot-empty', 'plot-carrot-stage-0', 'plot-carrot-stage-1', 'plot-carrot-stage-2', 'plot-carrot-stage-3'];
+		const newObjectId = `${objectType}_${Date.now()}_${Math.random()}`;
+
+		farmState.placedObjects[newObjectId] = {
+			type: objectType, x: x, y: y
+		};
+		if (objectType === 'plot') {
+			farmState.placedObjects[newObjectId].crop = null;
+			farmState.placedObjects[newObjectId].plantedAt = 0;
+		}
+
+		for (let row = y; row < y + objectData.size.h; row++) {
+			for (let col = x; col < x + objectData.size.w; col++) {
+				farmState.grid[row][col].objectId = newObjectId;
+			}
+		}
+		console.log(`Objeto ${newObjectId} colocado en (${x},${y})`);
+		return farmState; 
+	}
 
     function formatTime(ms) {
         if (ms <= 0) return "¡Listo!";
@@ -609,53 +695,129 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateUI() {
-		moneyDisplay.textContent = Math.floor(gameState.player.money);
-		carrotSeedsDisplay.textContent = gameState.inventory['carrot_seed'] || 0;
-		
-        plotElements.forEach(plotEl => {
-            const plotId = plotEl.dataset.plotId;
-            const plotState = gameState.plots[plotId];
-            const plotTimerEl = plotEl.querySelector('.plot-timer');
-            const plotBuyOverlayEl = plotEl.querySelector('.plot-buy-overlay');
-
-            plotEl.classList.remove(...ALL_CROP_CLASSES, 'plot-locked');
-            plotTimerEl.classList.add('hidden');
-            plotBuyOverlayEl.classList.add('hidden');
-
-            if (plotState.isLocked) {
-                plotEl.classList.add('plot-locked');
-                plotBuyOverlayEl.innerHTML = `<span>${GAME_DATA.CONFIG.PLOT_COST} 💰</span>`;
-                plotBuyOverlayEl.classList.remove('hidden');
-            } else if (plotState.crop) {
-                const cropData = GAME_DATA.CROPS[plotState.crop];
-                const stages = cropData.stages;
-                const totalGrowthTime = stages[stages.length - 1].duration;
-				const growthTimeReduction = getTalentBonus('GROWTH_TIME_REDUCTION');
-				const modifiedGrowthTime = totalGrowthTime * (1 - growthTimeReduction);
-                const elapsedTime = Date.now() - plotState.plantedAt;
-                
-                let currentStage = stages[0];
-                for (const stage of stages) {
-                    if (elapsedTime >= stage.duration) { currentStage = stage; } else { break; }
-                }
-                plotEl.classList.add(currentStage.spriteClass);
-                
-                const remainingTime = modifiedGrowthTime - elapsedTime;
-                plotTimerEl.textContent = formatTime(remainingTime);
-                plotTimerEl.classList.remove('hidden');
-            } else {
-                plotEl.classList.add('plot-empty');
-            }
-        });
-        
-        plantButton.classList.toggle('active', gameState.currentSelection && gameState.currentSelection.action === 'plant');
-        harvestButton.classList.toggle('active', gameState.currentSelection === 'harvest');
+		moneyDisplay.textContent = Math.floor(gameState.player.money);    
 		levelDisplay.textContent = `Nvl ${gameState.player.level}`;
 		const requiredXp = GAME_DATA.CONFIG.XP_FOR_LEVEL[gameState.player.level] || gameState.player.xp;
 		xpText.textContent = `${Math.floor(gameState.player.xp)} / ${requiredXp}`;
 		const xpPercentage = requiredXp > 0 ? (gameState.player.xp / requiredXp) * 100 : 100;
 		xpBarFill.style.width = `${xpPercentage}%`;
     }
+	
+	function renderHotbar() {
+		const slots = document.querySelectorAll('.hotbar-slot');
+    
+		slots.forEach((slot, index) => {
+			// Limpiamos el slot por si tenía algo antes
+			slot.innerHTML = ''; 
+			slot.style.backgroundImage = 'none';
+			slot.classList.remove('active-slot');
+
+			const itemInSlot = gameState.player.hotbar[index];
+
+			if (itemInSlot) {
+				// Si hay un ítem en este slot del estado del juego
+				const itemData = GAME_DATA.ITEMS[itemInSlot.id];
+				const quantity = itemInSlot.quantity;
+            
+				if (itemData) {
+					// Mostramos la imagen del ítem
+					slot.style.backgroundImage = `url('assets/${itemInSlot.id}.png')`;
+
+					// Mostramos la cantidad si es mayor que 1
+					if (quantity > 1) {
+						const countElement = document.createElement('span');
+						countElement.className = 'item-count';
+						countElement.textContent = quantity;
+						slot.appendChild(countElement);
+					}
+				}
+			}
+        
+			// Aplicamos la clase activa si este es el slot seleccionado
+			if (index === gameState.player.activeSlot) {
+				slot.classList.add('active-slot');
+			}
+		});
+	}
+	
+	function updateMapPosition() {
+		const farmView = document.getElementById('farm-view');
+		farmView.style.transform = `translate(${camera.x}px, ${camera.y}px) scale(${camera.zoom})`;
+	}
+	
+	function renderGrid() {
+		const farmView = document.getElementById('farm-view');
+		farmView.innerHTML = ''; 
+		farmView.style.gridTemplateColumns = `repeat(${gameState.farm.gridSize.w}, ${TILE_SIZE}px)`;
+
+		const mapWidth = gameState.farm.gridSize.w * TILE_SIZE + (gameState.farm.gridSize.w - 1) * GRID_GAP;
+		const mapHeight = gameState.farm.gridSize.h * TILE_SIZE + (gameState.farm.gridSize.h - 1) * GRID_GAP;
+		const viewportWidth = cameraViewport.clientWidth;
+		const viewportHeight = cameraViewport.clientHeight;
+		const scaleX = viewportWidth / mapWidth;
+		const scaleY = viewportHeight / mapHeight;
+		minZoom = Math.min(scaleX, scaleY);
+		camera.x = (viewportWidth - mapWidth) / 2;
+		camera.y = (viewportHeight - mapHeight) / 2;
+		updateMapPosition();
+
+		for (let y = 0; y < gameState.farm.gridSize.h; y++) {
+			for (let x = 0; x < gameState.farm.gridSize.w; x++) {
+				const tileData = gameState.farm.grid[y][x];
+				const tileElement = document.createElement('div');
+				tileElement.className = 'grid-tile';
+				tileElement.dataset.x = x;
+				tileElement.dataset.y = y;
+
+				if (tileData.base === 'water') {
+					tileElement.classList.add('water-tile');
+				} else {
+					if (tileData.objectId) {
+						const object = gameState.farm.placedObjects[tileData.objectId];
+						if (object.type === 'plot') {
+							tileElement.classList.add('plot');
+						}
+					} else {
+						tileElement.classList.add('grass-tile');
+					}
+				}
+				farmView.appendChild(tileElement);
+			}
+		}
+		updateGridObjects();
+	}
+	
+	function updateGridObjects() {
+		document.querySelectorAll('.grid-tile.plot').forEach(plotElement => {
+			plotElement.classList.remove(...ALL_CROP_CLASSES);
+			plotElement.classList.add('plot-empty');
+		});
+
+		for (const objectId in gameState.farm.placedObjects) {
+			const object = gameState.farm.placedObjects[objectId];
+			const tileElement = document.querySelector(`.grid-tile[data-x='${object.x}'][data-y='${object.y}']`);
+			if (!tileElement) continue;
+
+			if (object.type === 'plot') {
+				if (object.crop) {
+					const cropData = GAME_DATA.CROPS[object.crop];
+					const stages = cropData.stages;
+					const elapsedTime = Date.now() - object.plantedAt;
+					const growthTimeReduction = getTalentBonus('GROWTH_TIME_REDUCTION');
+                
+					let currentStage = stages[0];
+					for (const stage of stages) {
+						const modifiedDuration = stage.duration * (1 - growthTimeReduction);
+						if (elapsedTime >= modifiedDuration) { currentStage = stage; } 
+						else { break; }
+					}
+                
+					tileElement.classList.remove('plot-empty');
+					tileElement.classList.add(currentStage.spriteClass);
+				}
+			}
+		}
+	}
 	
 	function populateInventoryModal() {
 		inventoryItemsContainer.innerHTML = '';
@@ -752,6 +914,79 @@ document.addEventListener('DOMContentLoaded', () => {
 			questsContainer.appendChild(questElement);
 		});
 	}
+	
+	function getTileCoordsFromMouseEvent(e) {
+		const allTiles = document.querySelectorAll('.grid-tile');
+    
+		for (const tile of allTiles) {
+			const rect = tile.getBoundingClientRect();
+			if (
+				e.clientX >= rect.left &&
+				e.clientX <= rect.right &&
+				e.clientY >= rect.top &&
+				e.clientY <= rect.bottom
+			) {
+				return {
+					x: parseInt(tile.dataset.x, 10),
+					y: parseInt(tile.dataset.y, 10)
+				};
+			}
+		}
+		return null;
+	}
+	function updateGhostPreview(e, objectType) {
+		let ghost = document.getElementById('ghost-preview');
+		if (!ghost) {
+			ghost = document.createElement('div');
+			ghost.id = 'ghost-preview';
+			ghost.className = 'ghost-preview';
+			cameraViewport.appendChild(ghost); 
+		}
+
+		const objectData = GAME_DATA.PLACEABLE_OBJECTS[objectType];
+		const coords = getTileCoordsFromMouseEvent(e);
+
+		if (coords) {
+			const tilePixelX = coords.x * (TILE_SIZE + GRID_GAP);
+			const tilePixelY = coords.y * (TILE_SIZE + GRID_GAP);
+			const ghostWidth = objectData.size.w * TILE_SIZE + (objectData.size.w - 1) * GRID_GAP;
+			const ghostHeight = objectData.size.h * TILE_SIZE + (objectData.size.h - 1) * GRID_GAP;
+			ghost.innerHTML = `<img src="assets/${objectType}.png" style="width: 100%; height: 100%; opacity: 0.6;">`;
+			ghost.style.background = 'none'; // Quitamos el color de fondo verde/rojo
+			ghost.style.border = '2px dashed #ffffff';
+			ghost.style.transform = `translate(${camera.x + tilePixelX}px, ${camera.y + tilePixelY}px)`;
+			ghost.style.width = `${ghostWidth}px`;
+			ghost.style.height = `${ghostHeight}px`;
+			ghost.classList.toggle('invalid', !isAreaFree(gameState.farm, coords.x, coords.y, objectData.size.w, objectData.size.h));
+		} else {
+			ghost.style.transform = 'translate(-1000px, -1000px)';
+		}
+	}
+
+	function removeGhostPreview() {
+		const ghost = document.getElementById('ghost-preview');
+		if (ghost) ghost.remove();
+	}
+	
+	function getDistance(touch1, touch2) {
+		const dx = touch1.clientX - touch2.clientX;
+		const dy = touch1.clientY - touch2.clientY;
+		return Math.sqrt(dx * dx + dy * dy);
+	}
+
+	function zoomAtPoint(delta, pointX, pointY) {
+		const oldZoom = camera.zoom;
+    
+		camera.zoom += delta;
+		camera.zoom = Math.max(minZoom, Math.min(MAX_ZOOM, camera.zoom));
+    
+		if (camera.zoom === oldZoom) return;
+
+		camera.x = pointX - (pointX - camera.x) * (camera.zoom / oldZoom);
+		camera.y = pointY - (pointY - camera.y) * (camera.zoom / oldZoom);
+
+		updateMapPosition();
+	}
 
     shopButton.addEventListener('click', () => {
 		populateShopModal();
@@ -833,19 +1068,6 @@ document.addEventListener('DOMContentLoaded', () => {
 			}
 		}
 	});
-    plantButton.addEventListener('click', () => {
-		if (gameState.currentSelection && gameState.currentSelection.action === 'plant') {
-			gameState.currentSelection = null;
-		} else {
-			gameState.currentSelection = { action: 'plant', item: null };
-			alert("Selecciona una semilla de tu inventario para plantar.");
-		}
-		updateUI();
-	});
-    harvestButton.addEventListener('click', () => {
-        gameState.currentSelection = (gameState.currentSelection === 'harvest') ? null : 'harvest';
-        updateUI();
-    });
 	talentsButton.addEventListener('click', () => {
 		if (!talentTooltipCentral) {
 			talentTooltipCentral = document.createElement('div');
@@ -894,125 +1116,213 @@ document.addEventListener('DOMContentLoaded', () => {
 			talentTooltipCentral.classList.add('visible');
 		}
 	});
-
 	talentTreeContainer.addEventListener('mouseout', (event) => {
 		talentTooltipCentral.classList.remove('visible');
 	});
+	cameraViewport.addEventListener('mousedown', (e) => {
+		dragStartPos = { x: e.clientX, y: e.clientY };
 
-    plotElements.forEach(plotEl => {
-		plotEl.addEventListener('click', () => {
-			const plotId = plotEl.dataset.plotId;
-			const plotState = gameState.plots[plotId];
+		if (gameState.currentSelection && gameState.currentSelection.action === 'build') {
+			return;
+		}
+    
+		camera.isDragging = true;
+		camera.lastX = e.clientX;
+		camera.lastY = e.clientY;
+		e.preventDefault(); 
+	});
+	cameraViewport.addEventListener('mouseup', () => {
+		camera.isDragging = false;
+	});
+	cameraViewport.addEventListener('mouseleave', () => {
+		camera.isDragging = false;
+	});
+	cameraViewport.addEventListener('mousemove', (e) => {
+		if (camera.isDragging) {
+			const deltaX = e.clientX - camera.lastX;
+			const deltaY = e.clientY - camera.lastY;
+			camera.x += deltaX;
+			camera.y += deltaY;
+			camera.lastX = e.clientX;
+			camera.lastY = e.clientY;
+			updateMapPosition();
+		}
+		const activeHotbarSlot = gameState.player.hotbar[gameState.player.activeSlot];
+        const activeItemId = activeHotbarSlot ? activeHotbarSlot.id : null;
+        
+        if (activeItemId) {
+            const activeItemData = GAME_DATA.ITEMS[activeItemId];
+            if (activeItemData && activeItemData.isPlaceable) {
+                updateGhostPreview(e, activeItemData.placeableId); // Le pasamos el ID del objeto a colocar
+            } else {
+                removeGhostPreview();
+            }
+        } else {
+            removeGhostPreview();
+        }
+    });
+	cameraViewport.addEventListener('click', (e) => {
+		// Evita la acción si fue un arrastre de cámara, no un clic
+		const dist = Math.hypot(e.clientX - dragStartPos.x, e.clientY - dragStartPos.y);
+		if (dist > 5) return;
 
-			if (plotState.isLocked) {
-				if (gameState.player.money >= GAME_DATA.CONFIG.PLOT_COST) {
-					if (confirm(`¿Quieres comprar esta parcela por ${GAME_DATA.CONFIG.PLOT_COST} monedas?`)) {
-						gameState.player.money -= GAME_DATA.CONFIG.PLOT_COST;
-						plotState.isLocked = false;
-						saveGameState();
-					}
-				} else {
-					alert("¡No tienes suficiente dinero para comprar esta parcela!");
+		const coords = getTileCoordsFromMouseEvent(e);
+		if (!coords) return;
+
+		const tileData = gameState.farm.grid[coords.y][coords.x];
+		const objectOnTile = tileData.objectId ? gameState.farm.placedObjects[tileData.objectId] : null;
+		const activeHotbarSlot = gameState.player.hotbar[gameState.player.activeSlot];
+		const activeItemId = activeHotbarSlot ? activeHotbarSlot.id : null;
+
+		// Si la parcela tiene un cultivo listo, se cosecha sin importar qué tengas en la mano.
+		if (objectOnTile && objectOnTile.type === 'plot' && objectOnTile.crop) {
+			const cropData = GAME_DATA.CROPS[objectOnTile.crop];
+			const growthTimeReduction = getTalentBonus('GROWTH_TIME_REDUCTION');
+			const modifiedGrowthTime = cropData.stages[cropData.stages.length - 1].duration * (1 - growthTimeReduction);
+			const elapsedTime = Date.now() - objectOnTile.plantedAt;
+
+			if (elapsedTime >= modifiedGrowthTime) {
+				let harvestCost = GAME_DATA.CONFIG.ACTIONS_COST.HARVEST - getTalentBonus('ENERGY_COST_REDUCTION');
+				if (harvestCost < 0) harvestCost = 0;
+				if (gameState.player.energy < harvestCost) {
+					alert(`No tienes suficiente energía para cosechar. (Necesitas ${harvestCost})`);
+					return; // Detiene la ejecución
 				}
-				gameState.currentSelection = null;
-				updateUI();
+				gameState.player.energy -= harvestCost;
+            
+				let quantityToHarvest = 1;
+				const doubleYieldBonus = getTalentBonus('DOUBLE_YIELD_CHANCE');
+				if (Math.random() < doubleYieldBonus) {
+					quantityToHarvest = 2;
+					alert("¡Cosecha Abundante! Has recolectado el doble.");
+				}
+            
+				addToInventory(objectOnTile.crop, quantityToHarvest);
+				addSkillXp('farming', GAME_DATA.CONFIG.XP_REWARDS.FARMING_XP);
+            
+				objectOnTile.crop = null;
+				objectOnTile.plantedAt = 0;
+
+				saveGameState();
+				updateGridObjects(); // Actualiza visualmente la parcela
+				return; // ¡Importante! Cosecha realizada, no hacer nada más.
+			}
+		}
+
+		// Si no se cosechó, continuamos con las acciones del ítem activo...
+		if (!activeItemId) return; // Si no hay ítem en la mano, no se hace nada más.
+
+		const activeItemData = GAME_DATA.ITEMS[activeItemId];
+
+		if (activeItemId.includes('_seed')) {
+			if (objectOnTile && objectOnTile.type === 'plot' && objectOnTile.crop === null) {
+				const cropId = Object.keys(GAME_DATA.CROPS).find(key => GAME_DATA.CROPS[key].seedId === activeItemId);
+				if (!cropId) return;
+				const cropData = GAME_DATA.CROPS[cropId];
+
+				if (gameState.player.skills.farming.level < (cropData.requiredFarmingLevel || 0)) {
+					alert(`Nivel de Granjero insuficiente. Requiere Nivel ${cropData.requiredFarmingLevel}.`);
+					return;
+				}
+				let plantCost = GAME_DATA.CONFIG.ACTIONS_COST.PLANT - getTalentBonus('ENERGY_COST_REDUCTION');
+				if (plantCost < 1) plantCost = 1;
+				if (gameState.player.energy < plantCost) {
+					alert(`No tienes suficiente energía. (Necesitas ${plantCost})`);
+					return;
+				}
+
+				gameState.player.energy -= plantCost;
+				const seedSaverBonus = getTalentBonus('SEED_SAVER_CHANCE');
+				if (Math.random() > seedSaverBonus) {
+					removeFromInventory(activeItemId, 1);
+				} else {
+					alert("¡Suerte! No has gastado la semilla.");
+				}
+				objectOnTile.crop = cropId;
+				objectOnTile.plantedAt = Date.now();
+				saveGameState();
+				updateGridObjects();
 				return;
 			}
+		}
 
-			if (gameState.currentSelection && gameState.currentSelection.action === 'plant') {
-				const seedId = gameState.currentSelection.item;
-    			if (!seedId) return; 
-
-    			const cropId = Object.keys(GAME_DATA.CROPS).find(key => GAME_DATA.CROPS[key].seedId === seedId);
-    			if (!cropId) {
-        			console.error(`No se encontró un cultivo para la semilla: ${seedId}`);
-        			return;
-    			}
-    			const cropData = GAME_DATA.CROPS[cropId];
-
-    			if (cropData.requiredFarmingLevel && gameState.player.skills.farming.level < cropData.requiredFarmingLevel) {
-        			alert(`No tienes suficiente nivel de Granjero para plantar esto.\nRequiere Nivel ${cropData.requiredFarmingLevel}.`);
-        			gameState.currentSelection = null; // Deseleccionamos para evitar más intentos
-        			updateUI();
-        			return;
-    			}
-
-    			let plantCost = GAME_DATA.CONFIG.ACTIONS_COST.PLANT - getTalentBonus('ENERGY_COST_REDUCTION');
-    			if (plantCost < 1) plantCost = 1;
-
-    			if (gameState.player.energy < plantCost) {
-        			alert(`No tienes suficiente energía para plantar. (Necesitas ${plantCost})`);
-        			return;
-    			}
-    			if (plotState.crop === null && hasInInventory(seedId, 1)) {
-        			gameState.player.energy -= plantCost;
-
-        			const seedSaverBonus = getTalentBonus('SEED_SAVER_CHANCE');
-        			if (Math.random() > seedSaverBonus) {
-            			removeFromInventory(seedId, 1);
-        			} else {
-            			alert("¡Suerte! No has gastado la semilla.");
-        			}
-
-        			plotState.crop = cropId; 
-        			plotState.plantedAt = Date.now();
-        
-        			gameState.currentSelection = null;
-        			saveGameState();
-    			} else if (!hasInInventory(seedId, 1)) {
-        			alert(`¡No tienes semillas de ${GAME_DATA.ITEMS[seedId].name}!`);
-        			gameState.currentSelection = null;
-    			}
+		if (activeItemData.isPlaceable) {
+			const objectData = GAME_DATA.PLACEABLE_OBJECTS[activeItemData.placeableId];
+			if (isAreaFree(gameState.farm, coords.x, coords.y, objectData.size.w, objectData.size.h)) {
+				// El coste en dinero se paga al comprar el ítem en la tienda, no al colocarlo.
+				placeObject(gameState.farm, activeItemData.placeableId, coords.x, coords.y);
+				removeFromInventory(activeItemId, 1);
+				renderGrid(); // Re-renderizamos todo el grid por si el objeto es grande
+				saveGameState();
+			} else {
+				alert("No puedes construir aquí, el espacio está ocupado.");
 			}
-        
-			else if (gameState.currentSelection === 'harvest') {
-				if (plotState.crop) {
-					let harvestCost = GAME_DATA.CONFIG.ACTIONS_COST.PLANT - getTalentBonus('ENERGY_COST_REDUCTION');
-					if (harvestCost < 1) harvestCos = 1;
-
-					if (gameState.player.energy < harvestCost) {
-						alert(`No tienes suficiente energía para cosechar. (Necesitas ${harvestCost})`);
-						return; 
-					}
-                
-					const cropData = GAME_DATA.CROPS[plotState.crop];
-					const totalGrowthTime = cropData.stages[cropData.stages.length - 1].duration;
-					const growthTimeReduction = getTalentBonus('GROWTH_TIME_REDUCTION');
-					const modifiedGrowthTime = totalGrowthTime * (1 - growthTimeReduction);
-					const elapsedTime = Date.now() - plotState.plantedAt;
-                
-					if (elapsedTime >= modifiedGrowthTime) {
-						gameState.player.energy -= harvestCost;
-                    
-						let quantityToHarvest = 1;
-						const doubleYieldBonus = getTalentBonus('DOUBLE_YIELD_CHANCE');
-						if (Math.random() < doubleYieldBonus) {
-							quantityToHarvest = 2;
-							console.log("¡Cosecha Abundante! Has recolectado el doble.");
-							alert("¡Cosecha Abundante! Has recolectado el doble.");
-						}
-        
-						const harvestedItemId = plotState.crop;
-						addToInventory(harvestedItemId, quantityToHarvest); // Usamos la cantidad calculada
-						
-						addSkillXp('farming', GAME_DATA.CONFIG.XP_REWARDS.FARMING_XP);
-                    
-						plotState.crop = null;
-						plotState.plantedAt = 0;
-						saveGameState();
-					} else {
-						alert("¡Aún no está listo para cosechar!");
-					}
-				}
-			}
-        
-			gameState.currentSelection = null;
-			updateUI();
-		});
+			return;
+		}
 	});
-	
-	let lastTickTime = Date.now();
-	let todaysReward = null;
+	cameraViewport.addEventListener('wheel', (e) => {
+		e.preventDefault();
+		const zoomDirection = e.deltaY < 0 ? 1 : -1;
+		const delta = zoomDirection * ZOOM_SPEED;
+
+		const rect = cameraViewport.getBoundingClientRect();
+		const mouseX = e.clientX - rect.left;
+		const mouseY = e.clientY - rect.top;
+
+		zoomAtPoint(delta, mouseX, mouseY);
+	});
+	cameraViewport.addEventListener('touchstart', (e) => {
+		if (e.touches.length === 2) {
+			camera.isDragging = false; 
+			initialPinchDistance = getDistance(e.touches[0], e.touches[1]);
+		}
+	});
+	cameraViewport.addEventListener('touchmove', (e) => {
+		if (e.touches.length === 2) {
+			e.preventDefault();
+			const newPinchDistance = getDistance(e.touches[0], e.touches[1]);
+			const deltaDistance = newPinchDistance - initialPinchDistance;
+			const delta = deltaDistance * 0.005; 
+			const rect = cameraViewport.getBoundingClientRect();
+			const touchX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+			const touchY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+			zoomAtPoint(delta, touchX, touchY);
+			initialPinchDistance = newPinchDistance; // Actualizamos para el siguiente movimiento
+		}
+	});
+	cameraViewport.addEventListener('touchend', (e) => {
+		if (e.touches.length < 2) {
+			initialPinchDistance = null; // Reseteamos si se levanta un dedo
+		}
+	});
+	const hotbar = document.getElementById('hotbar');
+    hotbar.addEventListener('click', (event) => {
+        const targetSlot = event.target.closest('.hotbar-slot');
+        if (targetSlot) {
+            const slotIndex = parseInt(targetSlot.dataset.slotIndex, 10);
+            gameState.player.activeSlot = slotIndex;
+            renderHotbar(); // Redibujamos para mostrar el cambio
+        }
+    });
+    window.addEventListener('wheel', (event) => {
+        // event.deltaY será positivo para scroll hacia abajo, negativo para arriba
+        const direction = Math.sign(event.deltaY);
+        const currentSlot = gameState.player.activeSlot;
+        
+        // Usamos el operador módulo para que el scroll sea circular (de 9 vuelve a 1 y viceversa)
+        const nextSlot = (currentSlot + direction + 9) % 9; 
+        
+        gameState.player.activeSlot = nextSlot;
+        renderHotbar();
+    });
+    window.addEventListener('keydown', (event) => {
+        const keyNumber = parseInt(event.key, 10);
+        if (keyNumber >= 1 && keyNumber <= 9) {
+            // Las teclas 1-9 corresponden a los índices 0-8
+            gameState.player.activeSlot = keyNumber - 1;
+            renderHotbar();
+        }
+    });
 
     function gameLoop() {
 		const now = Date.now();
@@ -1032,6 +1342,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		energyDisplay.textContent = Math.floor(gameState.player.energy);
     
 		updateUI();
+		updateGridObjects();
 		requestAnimationFrame(gameLoop);
 	}
     gameLoop();

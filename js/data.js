@@ -78,7 +78,15 @@ const GAME_DATA = {
 		// --- Productos Crafteados ---
 		'flour': { name: 'Harina', sellValue: 150 },
 		'coffee': { name: 'Café', restoresEnergy: 20 },
-		'carrot_cake': { name: 'Pastel de Zanahoria', sellValue: 250, restoresEnergy: 50 }
+		'carrot_cake': { name: 'Pastel de Zanahoria', sellValue: 250, restoresEnergy: 50 },
+		
+		// --- Ítems Construibles ---
+		'plot_item': {
+			name: 'Parcela de Cultivo',
+			price: 50, // Se compra en la tienda por 50
+			isPlaceable: true, // Propiedad para identificarlo como construible
+			placeableId: 'plot' // ID del objeto que se colocará, de PLACEABLE_OBJECTS
+		}
 	},
 
     // ========================================================================
@@ -369,6 +377,22 @@ const GAME_DATA = {
 				'8': 'strawberry_seed',
 				'12': 'pumpkin_seed'
 			}
+		}
+	},
+	
+	// ========================================================================
+	// OBJETOS COLOCABLES EN LA GRANJA
+	// Define las propiedades de los objetos que el jugador puede construir.
+	// ========================================================================
+	PLACEABLE_OBJECTS: {
+		'plot': {
+			name: 'Parcela de Cultivo',
+			size: { w: 1, h: 1 }, // Ocupa 1x1 celdas
+		},
+		'mill': {
+			name: 'Molino',
+			size: { w: 2, h: 2 }, // Ocupa 2x2 celdas
+			cost: 500
 		}
 	}
 };

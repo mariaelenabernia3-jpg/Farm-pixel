@@ -6,61 +6,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pixel Farm - Granja</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/game.css">
 </head>
 <body>
 
     <div id="game-container">
         <header id="resource-bar">
-			<div class="resource">
-				<span>Semillas:</span>
-				<span id="carrot-seeds-display">0</span> 🥕
-			</div>
-			<div class="resource">
-				<span>Energía:</span>
-				<span id="energy-display">100</span> ⚡
-			</div>
-			<div class="resource">
-				<span>Dinero:</span>
-				<span id="money-display">100</span> 💰
-			</div>
-			<div class="level-container">
-				<div id="level-display" class="level-badge">Nvl 1</div>
-				<div class="xp-bar-background">
-					<div id="xp-bar-fill" class="xp-bar-fill"></div>
-					<span id="xp-text" class="xp-text">0 / 100</span>
-				</div>
-			</div>
-		</header>
+            <!-- Columna Izquierda -->
+            <div class="resource-bar-left">
+                <div class="level-container">
+                    <div id="level-display" class="level-badge">Nvl 1</div>
+                    <div class="xp-bar-background">
+                        <div id="xp-bar-fill" class="xp-bar-fill"></div>
+                        <span id="xp-text" class="xp-text">0 / 100</span>
+                    </div>
+                </div>
+            </div>
 
-        <main id="farm-view">
-            <div class="plot" data-plot-id="1">
-                <div class="plot-timer hidden"></div>
-                <div class="plot-buy-overlay hidden"></div>
+            <!-- Columna Central -->
+            <div class="resource-bar-center">
+                <div class="resource">
+                    <span id="energy-display">100</span> ⚡
+                </div>
+                <div class="resource">
+                    <span id="money-display">100</span> 💰
+                </div>
             </div>
-            <div class="plot" data-plot-id="2">
-                <div class="plot-timer hidden"></div>
-                <div class="plot-buy-overlay hidden"></div>
-            </div>
-            <div class="plot" data-plot-id="3">
-                <div class="plot-timer hidden"></div>
-                <div class="plot-buy-overlay hidden"></div>
-            </div>
-            <div class="plot" data-plot-id="4">
-                <div class="plot-timer hidden"></div>
-                <div class="plot-buy-overlay hidden"></div>
-            </div>
-        </main>
 
-        <footer id="action-panel">
-            <button class="action-button" data-action="plant">Plantar</button>
-            <button class="action-button" data-action="harvest">Cosechar</button>
-			<button class="action-button" data-action="inventory">Inventario</button>
-			<button class="action-button" data-action="skills">Habilidades</button>
-			<button class="action-button" data-action="talents">Talentos</button>
-            <button class="action-button" data-action="shop">Tienda</button>
-			<button class="action-button" data-action="quests">Tablón</button>
-        </footer>
+            <!-- Columna Derecha -->
+            <div class="resource-bar-right">
+                <button id="skills-button" class="icon-button-circle" title="Habilidades"><i class="fa-solid fa-book"></i></button>
+				<button id="talents-button" class="icon-button-circle" title="Talentos"><i class="fa-solid fa-star"></i></button>
+				<button id="shop-button" class="icon-button-circle" title="Tienda"><i class="fa-solid fa-store"></i></button>
+				<button id="quests-button" class="icon-button-circle" title="Tablón de Anuncios"><i class="fa-solid fa-scroll"></i></button>
+            </div>
+        </header>
+
+        <div id="camera-viewport">
+			<main id="farm-view"></main>
+		</div>
+		
+		<div id="toolbar-container">
+            <div id="hotbar">
+                <div class="hotbar-slot" data-slot-index="0"></div>
+                <div class="hotbar-slot" data-slot-index="1"></div>
+                <div class="hotbar-slot" data-slot-index="2"></div>
+                <div class="hotbar-slot" data-slot-index="3"></div>
+                <div class="hotbar-slot" data-slot-index="4"></div>
+                <div class="hotbar-slot" data-slot-index="5"></div>
+                <div class="hotbar-slot" data-slot-index="6"></div>
+                <div class="hotbar-slot" data-slot-index="7"></div>
+                <div class="hotbar-slot" data-slot-index="8"></div>
+            </div>
+            <!-- Botón para abrir el inventario completo -->
+            <button id="inventory-button" class="icon-button-circle" title="Abrir Inventario">🎒</button>
+        </div>
     </div>
 
     <!-- VENTANA MODAL DE LA TIENDA -->
